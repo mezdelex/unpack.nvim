@@ -73,7 +73,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.PANVIMDOC }}@github.com/${{ github.repository }}.git
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: ${{ github.head_ref || github.ref_name }}
           commit_message: ${{ env.PANVIMDOC_COMMIT_MSG }}
