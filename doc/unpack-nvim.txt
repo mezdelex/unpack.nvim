@@ -8,7 +8,7 @@ Table of Contents                              *unpack-nvim-table-of-contents*
   - Spec                                                    |unpack-nvim-spec|
   - Commands                                            |unpack-nvim-commands|
   - Roadmap                                              |unpack-nvim-roadmap|
-A minimal layer on top of vim.pack API to allow single file plugin configurations.
+UnPack is a minimal layer on top of vim.pack API to allow single file plugin configurations.
 
 
   [!IMPORTANT]
