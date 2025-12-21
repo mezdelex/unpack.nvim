@@ -1,4 +1,4 @@
-*unpack-nvim.txt*         For NVIM v0.8.0        Last change: 2025 November 21
+*unpack-nvim.txt*         For NVIM v0.8.0        Last change: 2025 December 21
 
 ==============================================================================
 Table of Contents                              *unpack-nvim-table-of-contents*
@@ -23,13 +23,16 @@ Add these lines to your init.lua:
     
     if not vim.uv.fs_stat(unpack_path) then
         vim.fn.system({
-            'git',
-            'clone',
+            "git",
+            "clone",
             "--filter=blob:none",
-            'https://github.com/mezdelex/unpack',
-            unpack_path
+            "https://github.com/mezdelex/unpack",
+            unpack_path,
         })
     end
+    vim.opt.runtimepath:prepend(unpack_path)
+    
+    require("unpack").setup()
 <
 
 
