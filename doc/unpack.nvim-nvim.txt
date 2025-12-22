@@ -1,0 +1,224 @@
+*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2025 December 22
+
+==============================================================================
+Table of Contents                         *unpack.nvim-nvim-table-of-contents*
+
+  - Installation                               |unpack.nvim-nvim-installation|
+  - Setup                                             |unpack.nvim-nvim-setup|
+  - Spec                                               |unpack.nvim-nvim-spec|
+  - Commands                                       |unpack.nvim-nvim-commands|
+  - Roadmap                                         |unpack.nvim-nvim-roadmap|
+UnPack is a minimal layer on top of vim.pack API to allow single file plugin configurations.
+
+
+  [!IMPORTANT]
+  `vim.pack` is currently under development in the `neovim-nightly` branch.
+
+INSTALLATION                                   *unpack.nvim-nvim-installation*
+
+Add these lines to your init.lua:
+
+>lua
+    local unpack_path = vim.fn.stdpath("data") .. "/site/pack/managers/start/unpack"
+    
+    if not vim.uv.fs_stat(unpack_path) then
+        vim.fn.system({
+            "git",
+            "clone",
+            "--filter=blob:none",
+            "https://github.com/mezdelex/unpack.nvim",
+            unpack_path,
+        })
+    end
+    vim.opt.runtimepath:prepend(unpack_path)
+    
+    require("unpack").setup()
+<
+
+
+SETUP                                                 *unpack.nvim-nvim-setup*
+
+Available options:
+
+>lua
+    ---@class UnPack.Config.UserOpts
+    --- Options for vim.pack.add
+    ---@field add_options? vim.pack.keyset.add
+    --- Options for vim.pack.update
+    ---@field update_options? vim.pack.keyset.update
+<
+
+Call setup right after the installation with your preferred options if you
+don’t like the defaults.
+
+
+  [!TIP]
+  Make sure you set `vim.g.mapleader` beforehand.
+>lua
+    require("unpack").setup({
+        ...
+    })
+<
+
+Defaults are set with minimal interaction in mind. If you want to be notified
+about all the changes, set `confirm` to true and `force` to false. See
+|vim.pack|
+
+
+SPEC                                                   *unpack.nvim-nvim-spec*
+
+This layer extends `vim.pack.Spec` to allow single file configurations.
+
+>lua
+    ---@class UnPack.Spec : vim.pack.Spec
+    ---@field config? fun()
+    ---@field defer? boolean
+    ---@field dependencies? UnPack.Spec[]
+<
+
+It also leverages `PackChanged` event triggered by `vim.pack` internals to run
+plugin build hooks. The same `command` that is fired inside the event is
+provided as a standalone one. See `Commands` section.
+
+Example plugin spec setups under `/lua/plugins/`:
+
+>lua
+    return {
+        config = function()
+            ...
+        end,
+        data = { build = "your build --command" },
+        defer = true,
+        src = "https://github.com/<vendor>/plugin1",
+    }
+<
+
+>lua
+    return {
+        config = function()
+            ...
+        end,
+        defer = true,
+        dependencies = {
+            {
+                defer = true,
+                src = "https://github.com/<vendor>/plugin2",
+            },
+        },
+        src = "https://github.com/<vendor>/plugin3",
+    }
+<
+
+
+BUILD ~
+
+UnPack expects a `build` field inside `data` table for the build hook, so make
+sure you add it like shown in the first example. This is because `vim.pack`
+handles the event trigger internally and exposes `vim.pack.Spec`, not the
+extended one, so we need to rely on that table. The build hook is planned to be
+part of and handled by the plugin itself, that’s why there’s no build hook
+exposed on purpose, but for now this is the workaround.
+
+For reference, this is the `autocmd` that listens to the event triggered by
+`vim.pack` internals whenever there’s a change in any package.
+
+
+  [!NOTE]
+  This is already set, you don’t need to worry about it.
+>lua
+    vim.api.nvim_create_augroup(group, { clear = true })
+    
+    vim.api.nvim_create_autocmd("PackChanged", {
+        callback = function(args)
+            local kind = args.data.kind ---@type string
+    
+            if kind == "install" or kind == "update" then
+                local spec = args.data.spec ---@type UnPack.Spec
+    
+                commands.build({ spec })
+            end
+        end,
+        group = group,
+    })
+<
+
+
+DEFER ~
+
+Every spec marked with `defer = true` is going to be deferred using
+`vim.schedule` to avoid UI render delay. Dependencies follow the same rules.
+
+
+DEPENDENCIES ~
+
+The dependencies handling logic is pretty simple: the plugins are going to be
+loaded in order, so make sure to add the dependencies in order too. For
+example, if any of your plugins relies on `plenary` as a dependency, add it in
+the first plugin that requires it following your `plugins` directory name
+order, and that’s pretty much it.
+
+
+COMMANDS                                           *unpack.nvim-nvim-commands*
+
+
+  [!NOTE]
+  All the notifications are wrapped in a `vim.schedule` call to avoid command
+  line overflow. If you want to see the recap after executing any command, use
+  `:messages`.
+The commands provided are:
+
+  ------------------------------------------------------------------------------
+  Command      Description
+  ------------ -----------------------------------------------------------------
+  PackBuild    Iterates over all the plugin specs and runs all the build hooks.
+               (Triggered automatically on PackChanged event per changed
+               package)
+
+  PackClean    Removes any plugin present in your packages directory that
+               doesn’t exist as a plugin spec.
+
+  PackLoad     Loads all the plugins in your plugins directory. (Runs on
+               VimEnter; exposed for build timeouts)
+
+  PackPull     Updates UnPack to the latest version. (Runs on VimEnter; calls
+               vim.system asynchronously to pull changes)
+
+  PackUpdate   Updates all the plugins present in your packages directory.
+  ------------------------------------------------------------------------------
+You can also use them this way if you prefer:
+
+>lua
+        local commands = require("unpack.commands")
+    
+        vim.keymap.set("n", "<your-keymap>", commands.build)
+        vim.keymap.set("n", "<your-keymap>", commands.clean)
+        vim.keymap.set("n", "<your-keymap>", commands.load)
+        vim.keymap.set("n", "<your-keymap>", commands.pull)
+        vim.keymap.set("n", "<your-keymap>", commands.update)
+<
+
+
+ROADMAP                                             *unpack.nvim-nvim-roadmap*
+
+- ☒ Single config file
+- ☒ Defer behavior
+- ☒ Simple dependency handling
+- ☒ Commands
+- ☒ Force pull UnPack updates on setup
+    - ☒ Schedule helptags generation after pull
+- ☒ Better error handling
+- ☒ Performance improvements
+- ☒ CI
+    - ☒ Style check job (stylua)
+    - ☒ Tests check job (busted)
+        - ☒ commands
+        - ☒ config
+        - ☒ extensions
+        - ☒ unpack
+    - ☒ Doc generation job (panvimdoc)
+- ☒ Add dependabot
+- ☒ Enforce PR ruleset
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+
+vim:tw=78:ts=8:noet:ft=help:norl:
