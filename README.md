@@ -18,7 +18,7 @@ if not vim.uv.fs_stat(unpack_path) then
         "git",
         "clone",
         "--filter=blob:none",
-        "https://github.com/mezdelex/unpack",
+        "https://github.com/mezdelex/unpack.nvim",
         unpack_path,
     })
 end
