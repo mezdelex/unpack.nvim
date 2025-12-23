@@ -65,48 +65,24 @@ end
 
 ---@private
 ---@param package_fpath string
----@param config UnPack.Config
-local function delete_conflicts(package_fpath, config)
-	local matches = vim.fn.glob(package_fpath .. "/**/*" .. config.opts.conflict_suffix, false, true) ---@type string[]
-	for _, match in ipairs(matches) do
-		local ok, err = vim.uv.fs_unlink(match)
-		if not ok then
-			vim.schedule(function()
-				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
-			end)
-		end
-	end
-end
-
----@private
----@param package_fpath string
 ---@param spec UnPack.Spec
 ---@param config UnPack.Config
-local function rename_conflicts(package_fpath, spec, config)
-	for _, conflict in ipairs(spec.data.conflicts) do
-		if type(conflict) == "string" then
-			local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
-			for _, match in ipairs(matches) do
-				local renamed = match .. config.opts.conflict_suffix
-				local ok, err = vim.uv.fs_rename(match, renamed)
-				if not ok then
-					vim.schedule(function()
-						vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
-					end)
+local function handle_conflicts(package_fpath, spec, config)
+	if vim.fn.has("win32") == 1 and type(spec.data.conflicts) == "table" then
+		for _, conflict in ipairs(spec.data.conflicts) do
+			if type(conflict) == "string" then
+				local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
+				for _, match in ipairs(matches) do
+					local renamed = match .. config.opts.conflict_suffix
+					local ok, err = vim.uv.fs_rename(match, renamed)
+					if not ok then
+						vim.schedule(function()
+							vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
+						end)
+					end
 				end
 			end
 		end
-	end
-end
-
----@private
----@param spec UnPack.Spec
----@param package_fpath string
----@param config UnPack.Config
-local function handle_conflicts(spec, package_fpath, config)
-	if vim.fn.has("win32") == 1 and type(spec.data.conflicts) == "table" then
-		delete_conflicts(package_fpath, config)
-		rename_conflicts(package_fpath, spec, config)
 	end
 end
 
@@ -131,7 +107,7 @@ local function handle_build(spec)
 		return
 	end
 
-	handle_conflicts(spec, package_fpath, config)
+	handle_conflicts(package_fpath, spec, config)
 
 	vim.schedule(function()
 		vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
