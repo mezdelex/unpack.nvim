@@ -87,7 +87,7 @@ return {
 	end,
 	data = {
         build = "your build --command",
-        conflicts = { "conflicting_file_name.dll"}
+        conflicts = { "conflicting_file_name1.dll", "conflicting_file_name2.dll"}
     },
 	defer = true,
 	src = "https://github.com/<vendor>/plugin1",

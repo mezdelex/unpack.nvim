@@ -9,6 +9,7 @@ local M = {} ---@class UnPack.Config
 M.opts = { ---@class UnPack.Config.Opts
 	add_options = { confirm = false }, ---@type vim.pack.keyset.add
 	config_path = vim.fn.stdpath("config"),
+	conflict_suffix = ".conflict",
 	data_path = vim.fn.stdpath("data"),
 	packages_rpath = "/site/pack/core/opt/",
 	plugins_rpath = "/lua/plugins/",

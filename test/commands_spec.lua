@@ -9,12 +9,13 @@ end
 
 package.loaded["config"] = {
 	opts = {
+		add_options = {},
 		config_path = "/tmp/config/",
-		plugins_rpath = "plugins/",
+		conflict_suffix = ".conflict",
 		data_path = "/tmp/data/",
 		packages_rpath = "packages/",
+		plugins_rpath = "plugins/",
 		unpack_rpath = "unpack",
-		add_options = {},
 		update_options = {},
 	},
 }
@@ -101,12 +102,15 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/*" .. ".conflict" then
+					return { "/tmp/data/packages/test/existing.conflict" }
+				end
 				if path == "/tmp/data/packages/test/**/conflict.dll" then
 					return { "/tmp/data/packages/test/conflict.dll" }
 				end
 				return {}
 			end
-			vim.uv.fs_rename = function(old, new)
+			vim.uv.fs_rename = function(_, _)
 				return true, nil
 			end
 			vim.uv.fs_unlink = function(_)
@@ -205,6 +209,9 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/*" .. ".conflict" then
+					return { "/tmp/data/packages/test/existing.conflict" }
+				end
 				if path == "/tmp/data/packages/test/**/conflict.dll" then
 					return { "/tmp/data/packages/test/conflict.dll" }
 				end
