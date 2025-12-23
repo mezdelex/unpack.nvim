@@ -87,6 +87,152 @@ describe("commands", function()
 			assert.same("Build failed for test", msgs[2][1])
 			assert.same(vim.log.levels.ERROR, msgs[2][2])
 		end)
+
+		it("handles conflicts on Windows", function()
+			local msgs = {}
+			local safe_delete_called = false
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.uv.fs_stat = function()
+				return { type = "directory" }
+			end
+			vim.notify = function(msg, level)
+				msgs[#msgs + 1] = { msg, level }
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/conflict.dll" then
+					return { "/tmp/data/packages/test/conflict.dll" }
+				end
+				return {}
+			end
+			vim.uv.fs_rename = function(old, new)
+				return true, nil
+			end
+			vim.uv.fs_unlink = function(_)
+				safe_delete_called = true
+				return true, nil
+			end
+			vim.system = function(cmd, opts)
+				assert.same({ "make", "install" }, cmd)
+				assert.same({ cwd = "/tmp/data/packages/test" }, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			assert.same("Building test...", msgs[1][1])
+			assert.same(vim.log.levels.WARN, msgs[1][2])
+			assert.same("Build successful for test", msgs[2][1])
+			assert.same(vim.log.levels.INFO, msgs[2][2])
+			assert.True(safe_delete_called)
+		end)
+
+		it("skips conflict handling on non-Windows", function()
+			local safe_delete_called = false
+			vim.fn.has = function(feature)
+				return feature == "win32" and 0 or 1
+			end
+			vim.uv.fs_stat = function()
+				return { type = "directory" }
+			end
+			vim.fn.glob = function()
+				safe_delete_called = true
+				return {}
+			end
+			vim.system = function(cmd, opts)
+				assert.same({ "make", "install" }, cmd)
+				assert.same({ cwd = "/tmp/data/packages/test" }, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			assert.False(safe_delete_called)
+		end)
+
+		it("handles fs_rename failure gracefully", function()
+			local msgs = {}
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.uv.fs_stat = function()
+				return { type = "directory" }
+			end
+			vim.notify = function(msg, level)
+				msgs[#msgs + 1] = { msg, level }
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/conflict.dll" then
+					return { "/tmp/data/packages/test/conflict.dll" }
+				end
+				return {}
+			end
+			vim.uv.fs_rename = function(_, _)
+				return false, "permission denied"
+			end
+			vim.system = function(cmd, opts)
+				assert.same({ "make", "install" }, cmd)
+				assert.same({ cwd = "/tmp/data/packages/test" }, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			assert.same("Rename failed: permission denied", msgs[1][1])
+			assert.same(vim.log.levels.ERROR, msgs[1][2])
+			assert.same("Building test...", msgs[2][1])
+			assert.same(vim.log.levels.WARN, msgs[2][2])
+			assert.same("Build successful for test", msgs[3][1])
+			assert.same(vim.log.levels.INFO, msgs[3][2])
+		end)
+
+		it("handles fs_unlink failure gracefully", function()
+			local msgs = {}
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.uv.fs_stat = function()
+				return { type = "directory" }
+			end
+			vim.notify = function(msg, level)
+				msgs[#msgs + 1] = { msg, level }
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/conflict.dll" then
+					return { "/tmp/data/packages/test/conflict.dll" }
+				end
+				return {}
+			end
+			vim.uv.fs_rename = function(_, _)
+				return true, nil
+			end
+			vim.uv.fs_unlink = function(_)
+				return false, "file in use"
+			end
+			vim.system = function(cmd, opts)
+				assert.same({ "make", "install" }, cmd)
+				assert.same({ cwd = "/tmp/data/packages/test" }, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			assert.same("Unlink failed: file in use", msgs[1][1])
+			assert.same(vim.log.levels.ERROR, msgs[1][2])
+			assert.same("Building test...", msgs[2][1])
+			assert.same(vim.log.levels.WARN, msgs[2][2])
+			assert.same("Build successful for test", msgs[3][1])
+			assert.same(vim.log.levels.INFO, msgs[3][2])
+		end)
 	end)
 
 	describe("clean", function()

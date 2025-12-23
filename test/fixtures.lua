@@ -1,15 +1,7 @@
 local M = {}
 
 M.vim_commands_fixtures = {
-	uv = {
-		fs_stat = function()
-			return nil
-		end,
-	},
 	fn = {
-		glob = function()
-			return {}
-		end,
 		fnamemodify = function(fpath, modifier)
 			if modifier == ":t" then
 				return fpath:match("([^/]+)$")
@@ -19,18 +11,22 @@ M.vim_commands_fixtures = {
 			end
 			return fpath
 		end,
+		glob = function()
+			return {}
+		end,
+		has = function(_)
+			return 1
+		end,
 		jobstart = function() end,
+	},
+	log = { levels = { INFO = 1, WARN = 2, ERROR = 3 } },
+	loop = {
+		now = function()
+			return 1
+		end,
 	},
 	notify = function() end,
 	pack = { del = function() end, add = function() end, update = function() end },
-	system = function()
-		return {
-			wait = function()
-				return { code = 0, stdout = "" }
-			end,
-		}
-	end,
-	log = { levels = { INFO = 1, WARN = 2, ERROR = 3 } },
 	schedule = function(f)
 		f()
 	end,
@@ -41,16 +37,29 @@ M.vim_commands_fixtures = {
 		end
 		return t
 	end,
+	system = function()
+		return {
+			wait = function()
+				return { code = 0, stdout = "" }
+			end,
+		}
+	end,
 	trim = function(s)
 		return (s:gsub("^%s*(.-)%s*$", "%1"))
 	end,
-}
-M.vim_config_fixtures = {
-	fn = {
-		stdpath = function(kind)
-			return "/tmp/" .. kind
+	uv = {
+		fs_rename = function(_, _)
+			return nil, nil
+		end,
+		fs_stat = function()
+			return nil
+		end,
+		fs_unlink = function(_)
+			return nil, nil
 		end,
 	},
+}
+M.vim_config_fixtures = {
 	deepcopy = function(v)
 		if type(v) ~= "table" then
 			return v
@@ -61,6 +70,11 @@ M.vim_config_fixtures = {
 		end
 		return t
 	end,
+	fn = {
+		stdpath = function(kind)
+			return "/tmp/" .. kind
+		end,
+	},
 	tbl_deep_extend = function(mode, base, override)
 		assert(mode == "force", "only 'force' is used in these tests")
 		local function merge(b, o)

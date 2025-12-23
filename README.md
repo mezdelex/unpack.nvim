@@ -85,6 +85,20 @@ return {
 	config = function()
 		...
 	end,
+	data = {
+        build = "your build --command",
+        conflicts = { "conflicting_file_name.dll"}
+    },
+	defer = true,
+	src = "https://github.com/<vendor>/plugin1",
+}
+```
+
+```lua
+return {
+	config = function()
+		...
+	end,
 	defer = true,
 	dependencies = {
 		{
@@ -98,7 +112,8 @@ return {
 
 ### Build
 
-UnPack expects a `build` field inside `data` table for the build hook, so make sure you add it like shown in the first example. This is because `vim.pack` handles the event trigger internally and exposes `vim.pack.Spec`, not the extended one, so we need to rely on that table.
+UnPack expects a `build` field inside `data` table for the build hook, so make sure you add it like shown in the first example.
+This is because `vim.pack` handles the event trigger internally and exposes `vim.pack.Spec`, not the extended one, so we need to rely on that table.
 The build hook is planned to be part of and handled by the plugin itself, that's why there's no build hook exposed on purpose, but for now this is the workaround.
 
 For reference, this is the `autocmd` that listens to the event triggered by `vim.pack` internals whenever there's a change in any package.
@@ -122,6 +137,34 @@ vim.api.nvim_create_autocmd("PackChanged", {
     end,
     group = group,
 })
+```
+
+### Conflicts
+
+Under WinOS, there are some permission problems related to the write rights on locked files and this affects the build hook when updating some plugins like `blink.cmp`.
+To address this, together with the `build` hook, `UnPack` expects you to use `conflicts` hook inside the `data` table. This is like this because the `build` hook
+will eventually be handled by the plugin itself with the incoming `spec` changes as we stated before, so it makes sense to keep them together.
+
+Until then, this is the workaround for WinOS users:
+
+```lua
+return {
+    config = function()
+        -- example configuration
+        require("blink.cmp").setup({
+            completion = {
+                documentation = { auto_show = true },
+            },
+            keymap = { preset = "enter" },
+        })
+    end,
+    data = {
+        build = "cargo build --release",
+        conflicts = { "blink_cmp_fuzzy.dll" },
+    },
+    defer = true,
+    src = "https://github.com/saghen/blink.cmp",
+}
 ```
 
 ### Defer

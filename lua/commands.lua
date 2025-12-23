@@ -64,6 +64,31 @@ local function get_package_names()
 end
 
 ---@private
+---@param package_fpath string
+---@param conflict string
+local function safe_delete_conflict(package_fpath, conflict)
+	local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
+
+	for _, match in ipairs(matches) do
+		local renamed = match .. ".conflict." .. vim.loop.now()
+		local ok, err = vim.uv.fs_rename(match, renamed)
+		if not ok then
+			vim.schedule(function()
+				vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
+			end)
+			return
+		end
+
+		ok, err = vim.uv.fs_unlink(renamed)
+		if not ok then
+			vim.schedule(function()
+				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
+			end)
+		end
+	end
+end
+
+---@private
 ---@param spec UnPack.Spec
 local function handle_build(spec)
 	if
@@ -82,6 +107,14 @@ local function handle_build(spec)
 
 	if not stat or stat.type ~= "directory" then
 		return
+	end
+
+	if vim.fn.has("win32") == 1 and type(spec.data.conflicts) == "table" then
+		for _, conflict in ipairs(spec.data.conflicts) do
+			if type(conflict) == "string" then
+				safe_delete_conflict(package_fpath, conflict)
+			end
+		end
 	end
 
 	vim.schedule(function()
