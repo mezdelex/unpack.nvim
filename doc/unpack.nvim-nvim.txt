@@ -1,4 +1,4 @@
-*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2025 December 22
+*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2025 December 23
 
 ==============================================================================
 Table of Contents                         *unpack.nvim-nvim-table-of-contents*
@@ -98,6 +98,20 @@ Example plugin spec setups under `/lua/plugins/`:
         config = function()
             ...
         end,
+        data = {
+            build = "your build --command",
+            conflicts = { "conflicting_file_name.dll"}
+        },
+        defer = true,
+        src = "https://github.com/<vendor>/plugin1",
+    }
+<
+
+>lua
+    return {
+        config = function()
+            ...
+        end,
         defer = true,
         dependencies = {
             {
@@ -140,6 +154,39 @@ For reference, this is the `autocmd` that listens to the event triggered by
         end,
         group = group,
     })
+<
+
+
+CONFLICTS ~
+
+Under WinOS, there are some permission problems related to the write rights on
+locked files and this affects the build hook when updating some plugins like
+`blink.cmp`. To address this, together with the `build` hook, `UnPack` expects
+you to use `conflicts` hook inside the `data` table. This is like this because
+the `build` hook will eventually be handled by the plugin itself with the
+incoming `spec` changes as we stated before, so it makes sense to keep them
+together.
+
+Until then, this is the workaround for WinOS users:
+
+>lua
+    return {
+        config = function()
+            -- example configuration
+            require("blink.cmp").setup({
+                completion = {
+                    documentation = { auto_show = true },
+                },
+                keymap = { preset = "enter" },
+            })
+        end,
+        data = {
+            build = "cargo build --release",
+            conflicts = { "blink_cmp_fuzzy.dll" },
+        },
+        defer = true,
+        src = "https://github.com/saghen/blink.cmp",
+    }
 <
 
 
