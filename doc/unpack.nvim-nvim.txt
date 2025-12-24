@@ -1,4 +1,4 @@
-*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2025 December 23
+*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2025 December 24
 
 ==============================================================================
 Table of Contents                         *unpack.nvim-nvim-table-of-contents*
@@ -222,7 +222,7 @@ The commands provided are:
                package)
 
   PackClean    Removes any plugin present in your packages directory that
-               doesn’t exist as a plugin spec.
+               doesn’t exist as a plugin spec and cleans stale conflicts if any.
 
   PackLoad     Loads all the plugins in your plugins directory. (Runs on
                VimEnter; exposed for build timeouts)
