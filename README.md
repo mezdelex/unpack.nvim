@@ -188,7 +188,7 @@ The commands provided are:
 | Command      | Description                                                                                                                             |
 | :----------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
 | `PackBuild`  | Iterates over all the plugin specs and runs all the build hooks. _(Triggered automatically on `PackChanged` event per changed package)_ |
-| `PackClean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec.                                              |
+| `PackClean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec and cleans stale conflicts if any.            |
 | `PackLoad`   | Loads all the plugins in your `plugins` directory. _(Runs on `VimEnter`; exposed for build timeouts)_                                   |
 | `PackPull`   | Updates _UnPack_ to the latest version. _(Runs on `VimEnter`; calls `vim.system` asynchronously to pull changes)_                       |
 | `PackUpdate` | Updates all the plugins present in your packages directory.                                                                             |

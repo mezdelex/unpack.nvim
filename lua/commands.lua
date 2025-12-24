@@ -119,6 +119,33 @@ local function handle_build(spec)
 	end)
 end
 
+---@private
+---@param spec UnPack.Spec
+---@param package_name string
+---@param config UnPack.Config
+local function clean_conflicts(spec, package_name, config)
+	if vim.fn.has("win32") == 1 and type(spec.data) == "table" and type(spec.data.conflicts) == "table" then
+		local matches = vim.fn.glob(
+			config.opts.data_path
+				.. config.opts.packages_rpath
+				.. package_name
+				.. "/**/*"
+				.. config.opts.conflict_suffix,
+			false,
+			true
+		) ---@type string[]
+
+		for _, match in ipairs(matches) do
+			local ok, err = vim.uv.fs_unlink(match)
+			if not ok then
+				vim.schedule(function()
+					vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
+				end)
+			end
+		end
+	end
+end
+
 local M = {} ---@class UnPack.Commands
 
 ---@param specs? UnPack.Spec[]
@@ -132,17 +159,20 @@ M.build = function(specs)
 	end
 end
 M.clean = function()
-	local _, names = get_specs_and_names()
+	local config = require("config")
+	local names_set, packages_to_delete = {}, {} ---@type table<string, UnPack.Spec>, string[]
 	local package_names = get_package_names()
-	local names_set, packages_to_delete = {}, {} ---@type table<string, boolean>, string[]
+	local specs, names = get_specs_and_names()
 
-	for _, name in ipairs(names) do
-		names_set[name] = true
+	for idx, name in ipairs(names) do
+		names_set[name] = specs[idx]
 	end
 
 	for _, package_name in ipairs(package_names) do
-		if not names_set[package_name] then
+		if names_set[package_name] == nil then
 			packages_to_delete[#packages_to_delete + 1] = package_name
+		else
+			clean_conflicts(names_set[package_name], package_name, config)
 		end
 	end
 

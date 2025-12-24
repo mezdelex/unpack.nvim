@@ -208,6 +208,144 @@ describe("commands", function()
 			commands.clean()
 			assert.same({ "b" }, deleted)
 		end)
+
+		it("cleans conflict files on Windows", function()
+			local unlink_calls = {}
+			package.loaded["plugins.test"] = {
+				src = "/tmp/data/packages/test",
+				data = { conflicts = { "a.dll" } },
+			}
+
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/*.conflict" then
+					return {
+						"/tmp/data/packages/test/a.dll.conflict",
+					}
+				end
+				if path:match("plugins/") then
+					return { "/tmp/config/plugins/test.lua" }
+				else
+					return { "/tmp/data/packages/test/" }
+				end
+			end
+			vim.fn.fnamemodify = function(path, mod)
+				if mod == ":t:r" then
+					return "test"
+				end
+				if mod == ":t" then
+					return "test"
+				end
+				return path
+			end
+			vim.uv.fs_unlink = function(file)
+				table.insert(unlink_calls, file)
+				return true, nil
+			end
+			vim.pack.del = function() end
+
+			commands.clean()
+
+			assert.same(1, #unlink_calls)
+			assert.is_true(unlink_calls[1] == "/tmp/data/packages/test/a.dll.conflict")
+		end)
+
+		it("handles unlink failure gracefully", function()
+			local msgs = {}
+			package.loaded["plugins.test"] = {
+				src = "/tmp/data/packages/test",
+				data = { conflicts = { "a.dll" } },
+			}
+
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/*.conflict" then
+					return { "/tmp/data/packages/test/a.dll.conflict" }
+				end
+				if path:match("plugins/") then
+					return { "/tmp/config/plugins/test.lua" }
+				else
+					return { "/tmp/data/packages/test/" }
+				end
+			end
+			vim.fn.fnamemodify = function(path, mod)
+				if mod == ":t:r" then
+					return "test"
+				end
+				if mod == ":t" then
+					return "test"
+				end
+				return path
+			end
+			vim.uv.fs_unlink = function(_)
+				return false, "permission denied"
+			end
+			vim.notify = function(msg, level)
+				msgs[#msgs + 1] = { msg, level }
+			end
+
+			commands.clean()
+
+			assert.same("Unlink failed: permission denied", msgs[1][1])
+			assert.same(vim.log.levels.ERROR, msgs[1][2])
+		end)
+
+		it("skips conflict cleaning on non-Windows", function()
+			local glob_called = false
+			vim.fn.has = function(feature)
+				return feature == "win32" and 0 or 1
+			end
+			vim.fn.glob = function(path)
+				if path:match("**/*.conflict$") then
+					glob_called = true
+				end
+				return {}
+			end
+
+			commands.clean()
+
+			assert.False(glob_called)
+		end)
+
+		it("only cleans conflicts for packages with conflicts config", function()
+			local glob_called = false
+			package.loaded["plugins.a"] = { src = "/tmp/data/packages/a" }
+
+			vim.fn.has = function(feature)
+				return feature == "win32" and 1 or 0
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/a/**/*.conflict" then
+					glob_called = true
+					return { "/tmp/data/packages/a/test.dll.conflict" }
+				end
+				if path:match("plugins/") then
+					return { "/tmp/config/plugins/a.lua" }
+				else
+					return { "/tmp/data/packages/a/" }
+				end
+			end
+			vim.fn.fnamemodify = function(path, mod)
+				if mod == ":t:r" then
+					return "a"
+				end
+				if mod == ":t" then
+					return "a"
+				end
+				return path
+			end
+			vim.uv.fs_unlink = function(_)
+				return true, nil
+			end
+
+			commands.clean()
+
+			assert.False(glob_called)
+		end)
 	end)
 
 	describe("load", function()
