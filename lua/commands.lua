@@ -72,9 +72,11 @@ local function handle_conflicts(package_fpath, spec, config)
 		for _, conflict in ipairs(spec.data.conflicts) do
 			if type(conflict) == "string" then
 				local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
+
 				for _, match in ipairs(matches) do
 					local renamed = match .. config.opts.conflict_suffix
 					local ok, err = vim.uv.fs_rename(match, renamed)
+
 					if not ok then
 						vim.schedule(function()
 							vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
@@ -137,6 +139,7 @@ local function clean_conflicts(spec, package_name, config)
 
 		for _, match in ipairs(matches) do
 			local ok, err = vim.uv.fs_unlink(match)
+
 			if not ok then
 				vim.schedule(function()
 					vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
