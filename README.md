@@ -23,13 +23,17 @@ if not vim.uv.fs_stat(unpack_path) then
     })
 end
 vim.opt.runtimepath:prepend(unpack_path)
-
-require("unpack").setup()
 ```
 
 ## Setup
 
+Call setup right after the installation with your preferred options if you don't like the defaults.
+Defaults are set with minimal interaction in mind so if you want to be notified about all the changes, set `confirm` to true and `force` to false.
+`UnPack` automatically loads its default config on startup via `plugin` directory.
+
 Available options:
+
+See `:h vim.pack.add` and `:h vim.pack.update` opts.
 
 ```lua
 ---@class UnPack.Config.UserOpts
@@ -39,20 +43,17 @@ Available options:
 ---@field update_options? vim.pack.keyset.update
 ```
 
-Call setup right after the installation with your preferred options if you don't like the defaults.
-
 > [!TIP]
 >
 > Make sure you set `vim.g.mapleader` beforehand.
 
 ```lua
 require("unpack").setup({
-    ...
+    -- example optional setup call
+    add_options = { confirm = true }, -- default false
+    update_options = { force = false }, -- default true
 })
 ```
-
-Defaults are set with minimal interaction in mind. If you want to be notified about all the changes, set `confirm` to true and `force` to false.
-See `:h vim.pack`
 
 ## Spec
 

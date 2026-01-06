@@ -39,6 +39,8 @@ function M.setup(opts)
 	commands.pull()
 
 	M.commands = commands
+
+	vim.g.unpack_loaded = true
 end
 
 return M
