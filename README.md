@@ -27,13 +27,11 @@ vim.opt.runtimepath:prepend(unpack_path)
 
 ## Setup
 
-Call setup right after the installation with your preferred options if you don't like the defaults.
-Defaults are set with minimal interaction in mind so if you want to be notified about all the changes, set `confirm` to true and `force` to false.
 `UnPack` automatically loads its default config on startup via `plugin` directory.
+Call setup right after the installation with your preferred options if you don't like the defaults.
+Defaults are set with minimal interaction in mind, so if you want to be notified about all the changes, set `confirm` to true and `force` to false.
 
 Available options:
-
-See `:h vim.pack.add` and `:h vim.pack.update` opts.
 
 ```lua
 ---@class UnPack.Config.UserOpts
@@ -42,6 +40,8 @@ See `:h vim.pack.add` and `:h vim.pack.update` opts.
 --- Options for vim.pack.update
 ---@field update_options? vim.pack.keyset.update
 ```
+
+See `:h vim.pack.add` and `:h vim.pack.update` opts.
 
 > [!TIP]
 >
