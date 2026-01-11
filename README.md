@@ -1,6 +1,10 @@
-<p align="center"><img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/58e69f3f-d0c5-473c-ab23-5d6d2d80d8b5" /></p>
-<p align="center">UnPack is a minimal layer on top of <code>vim.pack</code> API to allow single file plugin configurations.</p>
-<br>
+<br clear="all" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/58e69f3f-d0c5-473c-ab23-5d6d2d80d8b5" width="200" height="200" />
+  <br>
+  <b>UnPack is a minimal layer on top of vim.pack</b>
+</p>
+<br clear="all" />
 
 > [!IMPORTANT]
 >
@@ -226,3 +230,4 @@ You can also use them this way if you prefer:
   - [x] Doc generation job (panvimdoc)
 - [x] Add dependabot
 - [x] Enforce PR ruleset
+ggg
