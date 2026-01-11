@@ -1,4 +1,4 @@
-<p align="center"><img width="1024" height="1024" alt="Image" src="https://github.com/user-attachments/assets/91040314-3cb7-4586-8219-01782d94feed" /></p>
+<p align="center"><img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/91040314-3cb7-4586-8219-01782d94feed" /></p>
 <p align="center">UnPack is a minimal layer on top of <code>vim.pack</code> API to allow single file plugin configurations.</p>
 <br>
 
