@@ -10,6 +10,12 @@
 >
 > `vim.pack` is currently under development in the `neovim-nightly` branch.
 
+## Example
+
+[Daily driver config example](https://github.com/mezdelex/neovim-config) using UnPack on nightly branch.
+
+https://github.com/user-attachments/assets/7ad14bac-70f0-4ded-aed0-308fefb767e9
+
 ## Installation
 
 Add these lines to your init.lua:
@@ -230,4 +236,4 @@ You can also use them this way if you prefer:
   - [x] Doc generation job (panvimdoc)
 - [x] Add dependabot
 - [x] Enforce PR ruleset
-ggg
+      ggg
