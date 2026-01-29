@@ -10,9 +10,9 @@
 >
 > `vim.pack` is currently under development in the `neovim-nightly` branch.
 
-## Example
+## Demo
 
-[Daily driver config example](https://github.com/mezdelex/neovim-config) using UnPack on nightly branch.
+Example [config](https://github.com/mezdelex/neovim-config) using UnPack as daily driver.
 
 https://github.com/user-attachments/assets/7ad14bac-70f0-4ded-aed0-308fefb767e9
 
