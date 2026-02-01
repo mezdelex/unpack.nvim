@@ -12,7 +12,7 @@
 
 ## Demo
 
-Example [config](https://github.com/mezdelex/neovim-config) using UnPack as daily driver.
+Example [config](https://github.com/mezdelex/neovim) using UnPack as daily driver.
 
 https://github.com/user-attachments/assets/7ad14bac-70f0-4ded-aed0-308fefb767e9
 
