@@ -65,7 +65,7 @@ jobs:
 
       - uses: kdheepak/panvimdoc@main
         with:
-          vimdoc: ${{ github.event.repository.name }}-nvim
+          vimdoc: ${{ github.event.repository.name }}
 
       - name: Set up git with PAT
         run: |
