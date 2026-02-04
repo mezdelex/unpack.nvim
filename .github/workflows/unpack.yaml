@@ -54,7 +54,7 @@ jobs:
           nvim --headless -c "!busted --verbose ." -c "qa!"
 
   docs:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
     name: Generate docs with panvimdoc
     needs: tests
     runs-on: ubuntu-latest
