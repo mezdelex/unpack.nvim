@@ -21,9 +21,6 @@ describe("unpack.setup", function()
 			load = function(...)
 				table.insert(calls, { "load", ... })
 			end,
-			pull = function(...)
-				table.insert(calls, { "pull", ... })
-			end,
 			update = function(...)
 				table.insert(calls, { "update", ... })
 			end,
@@ -85,11 +82,10 @@ describe("unpack.setup", function()
 		assert.is_function(uc.PackBuild.fn)
 		assert.is_function(uc.PackClean.fn)
 		assert.is_function(uc.PackLoad.fn)
-		assert.is_function(uc.PackPull.fn)
 		assert.is_function(uc.PackUpdate.fn)
 	end)
 
-	it("invokes commands.load and commands.pull immediately", function()
+	it("invokes commands.load immediately", function()
 		local commands = package.loaded["commands"]
 		unpack.setup()
 		local names = {}
@@ -97,6 +93,5 @@ describe("unpack.setup", function()
 			table.insert(names, c[1])
 		end
 		assert.True(vim.tbl_contains(names, "load"))
-		assert.True(vim.tbl_contains(names, "pull"))
 	end)
 end)

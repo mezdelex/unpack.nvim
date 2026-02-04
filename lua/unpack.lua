@@ -32,11 +32,9 @@ function M.setup(opts)
 	vim.api.nvim_create_user_command("PackBuild", commands.build, {})
 	vim.api.nvim_create_user_command("PackClean", commands.clean, {})
 	vim.api.nvim_create_user_command("PackLoad", commands.load, {})
-	vim.api.nvim_create_user_command("PackPull", commands.pull, {})
 	vim.api.nvim_create_user_command("PackUpdate", commands.update, {})
 
 	commands.load()
-	commands.pull()
 
 	M.commands = commands
 

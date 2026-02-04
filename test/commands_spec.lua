@@ -15,7 +15,7 @@ package.loaded["config"] = {
 		data_path = "/tmp/data/",
 		packages_rpath = "packages/",
 		plugins_rpath = "plugins/",
-		unpack_rpath = "unpack",
+		unpack_package = "unpack.nvim",
 		update_options = {},
 	},
 }
@@ -395,51 +395,6 @@ describe("commands", function()
 			assert.is_function(scheduled)
 			scheduled()
 			assert.True(ran)
-		end)
-	end)
-
-	describe("pull", function()
-		it("pulls if unpack dir exists", function()
-			local calls = {}
-			local cmd_called_with
-			vim.uv.fs_stat = function()
-				return { type = "directory" }
-			end
-			vim.system = function(cmd, opts, cb)
-				table.insert(calls, { cmd = cmd, opts = opts })
-				if cb then
-					cb()
-				end
-			end
-			vim.cmd = function(cmd_str)
-				cmd_called_with = cmd_str
-			end
-
-			commands.pull()
-
-			assert.same({ "git", "fetch", "--all" }, calls[1].cmd)
-			assert.same({ cwd = "/tmp/data/unpack" }, calls[1].opts)
-
-			assert.same({ "git", "reset", "--hard", "origin/main" }, calls[2].cmd)
-			assert.same({ cwd = "/tmp/data/unpack" }, calls[2].opts)
-
-			assert.same({ "git", "clean", "-fdx" }, calls[3].cmd)
-			assert.same({ cwd = "/tmp/data/unpack" }, calls[3].opts)
-
-			assert.same("helptags /tmp/data/unpack/doc", cmd_called_with)
-		end)
-
-		it("does nothing if unpack dir missing", function()
-			local called = false
-			vim.uv.fs_stat = function()
-				return {}
-			end
-			vim.system = function()
-				called = true
-			end
-
-			commands.pull()
-			assert.False(called)
 		end)
 	end)
 

@@ -13,7 +13,7 @@ M.opts = { ---@class UnPack.Config.Opts
 	data_path = vim.fn.stdpath("data"),
 	packages_rpath = "/site/pack/core/opt/",
 	plugins_rpath = "/lua/plugins/",
-	unpack_rpath = "/site/pack/managers/start/unpack/",
+	unpack_package = "unpack.nvim",
 	update_options = { force = true }, ---@type vim.pack.keyset.update
 }
 ---@param opts? UnPack.Config.UserOpts
