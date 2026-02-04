@@ -14,7 +14,7 @@
 
 Example [config](https://github.com/mezdelex/neovim) using UnPack as daily driver.
 
-[https://github.com/user-attachments/assets/7ad14bac-70f0-4ded-aed0-308fefb767e9](https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42)
+[video](https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42)
 
 ## Installation
 
