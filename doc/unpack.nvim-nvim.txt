@@ -1,4 +1,4 @@
-*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2026 February 01
+*unpack.nvim-nvim.txt*      For NVIM v0.8.0      Last change: 2026 February 04
 
 ==============================================================================
 Table of Contents                         *unpack.nvim-nvim-table-of-contents*
@@ -42,7 +42,6 @@ Add these lines to your init.lua:
             unpack_path,
         })
     end
-    vim.opt.runtimepath:prepend(unpack_path)
 <
 
 
