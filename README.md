@@ -21,17 +21,7 @@ https://github.com/user-attachments/assets/7ad14bac-70f0-4ded-aed0-308fefb767e9
 Add these lines to your init.lua:
 
 ```lua
-local unpack_path = vim.fn.stdpath("data") .. "/site/pack/managers/start/unpack"
-
-if not vim.uv.fs_stat(unpack_path) then
-    vim.fn.system({
-        "git",
-        "clone",
-        "--filter=blob:none",
-        "https://github.com/mezdelex/unpack.nvim",
-        unpack_path,
-    })
-end
+vim.pack.add({ "https://github.com/mezdelex/unpack.nvim" }, { confirm = false })
 ```
 
 ## Setup
@@ -200,7 +190,6 @@ The commands provided are:
 | `PackBuild`  | Iterates over all the plugin specs and runs all the build hooks. _(Triggered automatically on `PackChanged` event per changed package)_ |
 | `PackClean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec and cleans stale conflicts if any.            |
 | `PackLoad`   | Loads all the plugins in your `plugins` directory. _(Runs on `VimEnter`; exposed for build timeouts)_                                   |
-| `PackPull`   | Updates _UnPack_ to the latest version. _(Runs on `VimEnter`; calls `vim.system` asynchronously to pull changes)_                       |
 | `PackUpdate` | Updates all the plugins present in your packages directory.                                                                             |
 
 You can also use them this way if you prefer:
@@ -211,7 +200,6 @@ You can also use them this way if you prefer:
     vim.keymap.set("n", "<your-keymap>", commands.build)
     vim.keymap.set("n", "<your-keymap>", commands.clean)
     vim.keymap.set("n", "<your-keymap>", commands.load)
-    vim.keymap.set("n", "<your-keymap>", commands.pull)
     vim.keymap.set("n", "<your-keymap>", commands.update)
 ```
 
@@ -221,8 +209,6 @@ You can also use them this way if you prefer:
 - [x] Defer behavior
 - [x] Simple dependency handling
 - [x] Commands
-- [x] Force pull UnPack updates on setup
-  - [x] Schedule helptags generation after pull
 - [x] Better error handling
 - [x] Performance improvements
 - [x] CI

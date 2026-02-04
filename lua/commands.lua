@@ -57,7 +57,9 @@ local function get_package_names()
 	for _, package_fpath in ipairs(package_fpaths) do
 		local package_name = vim.fn.fnamemodify(package_fpath:sub(1, -2), ":t")
 
-		package_names[#package_names + 1] = package_name
+		if package_name ~= config.opts.unpack_package then
+			package_names[#package_names + 1] = package_name
+		end
 	end
 
 	return package_names
@@ -195,23 +197,6 @@ M.load = function()
 				spec.config()
 			end
 		end
-	end
-end
-M.pull = function()
-	local config = require("config")
-	local unpack_fpath = config.opts.data_path .. config.opts.unpack_rpath
-	local stat = vim.uv.fs_stat(unpack_fpath)
-
-	if stat and stat.type == "directory" then
-		vim.system({ "git", "fetch", "--all" }, { cwd = unpack_fpath }, function()
-			vim.system({ "git", "reset", "--hard", "origin/main" }, { cwd = unpack_fpath }, function()
-				vim.system({ "git", "clean", "-fdx" }, { cwd = unpack_fpath }, function()
-					vim.schedule(function()
-						vim.cmd(("helptags %s/doc"):format(unpack_fpath))
-					end)
-				end)
-			end)
-		end)
 	end
 end
 M.update = function()
