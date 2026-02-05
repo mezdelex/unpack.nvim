@@ -11,7 +11,7 @@ Table of Contents                              *unpack.nvim-table-of-contents*
   - Roadmap                                              |unpack.nvim-roadmap|
 
 
-UnPack is a minimal layer on top of vim.pack
+unpack is a minimal layer on top of vim.pack
 
 
   [!IMPORTANT]

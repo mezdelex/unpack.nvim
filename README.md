@@ -2,7 +2,7 @@
 <p align="center">
   <img src="https://github.com/user-attachments/assets/b23b4325-abde-463a-a1d1-8d42f4dabd25" width="200" height="200" alt="Image" />
   <br>
-  <b>UnPack is a minimal layer on top of vim.pack</b>
+  <b>unpack is a minimal layer on top of vim.pack</b>
 </p>
 <br clear="all" />
 
@@ -12,7 +12,7 @@
 
 ## Demo
 
-Example [config](https://github.com/mezdelex/neovim) using UnPack as daily driver.
+Example [config](https://github.com/mezdelex/neovim) using unpack as daily driver.
 
 [video](https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42)
 
@@ -26,14 +26,14 @@ vim.pack.add({ "https://github.com/mezdelex/unpack.nvim" }, { confirm = false })
 
 ## Setup
 
-`UnPack` automatically loads its default config on startup via `plugin` directory.
+`unpack` automatically loads its default config on startup via `plugin` directory.
 Call setup right after the installation with your preferred options if you don't like the defaults.
 Defaults are set with minimal interaction in mind, so if you want to be notified about all the changes, set `confirm` to true and `force` to false.
 
 Available options:
 
 ```lua
----@class UnPack.Config.UserOpts
+---@class Unpack.Config.UserOpts
 --- Options for vim.pack.add
 ---@field add_options? vim.pack.keyset.add
 --- Options for vim.pack.update
@@ -59,10 +59,10 @@ require("unpack").setup({
 This layer extends `vim.pack.Spec` to allow single file configurations.
 
 ```lua
----@class UnPack.Spec : vim.pack.Spec
+---@class Unpack.Spec : vim.pack.Spec
 ---@field config? fun()
 ---@field defer? boolean
----@field dependencies? UnPack.Spec[]
+---@field dependencies? Unpack.Spec[]
 ```
 
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run plugin build hooks. The same `command` that is fired inside the event is provided as a standalone one. See `Commands` section.
@@ -112,7 +112,7 @@ return {
 
 ### Build
 
-UnPack expects a `build` field inside `data` table for the build hook, so make sure you add it like shown in the first example.
+unpack expects a `build` field inside `data` table for the build hook, so make sure you add it like shown in the first example.
 This is because `vim.pack` handles the event trigger internally and exposes `vim.pack.Spec`, not the extended one, so we need to rely on that table.
 The build hook is planned to be part of and handled by the plugin itself, that's why there's no build hook exposed on purpose, but for now this is the workaround.
 
@@ -130,7 +130,7 @@ vim.api.nvim_create_autocmd("PackChanged", {
         local kind = args.data.kind ---@type string
 
         if kind == "install" or kind == "update" then
-            local spec = args.data.spec ---@type UnPack.Spec
+            local spec = args.data.spec ---@type Unpack.Spec
 
             commands.build({ spec })
         end
@@ -142,7 +142,7 @@ vim.api.nvim_create_autocmd("PackChanged", {
 ### Conflicts
 
 Under WinOS, there are some permission problems related to the write rights on locked files and this affects the build hook when updating some plugins like `blink.cmp`.
-To address this, together with the `build` hook, `UnPack` expects you to use `conflicts` hook inside the `data` table. This is like this because the `build` hook
+To address this, together with the `build` hook, `unpack` expects you to use `conflicts` hook inside the `data` table. This is like this because the `build` hook
 will eventually be handled by the plugin itself with the incoming `spec` changes as we stated before, so it makes sense to keep them together.
 
 Until then, this is the workaround for WinOS users:
