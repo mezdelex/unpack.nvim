@@ -221,4 +221,3 @@ You can also use them this way if you prefer:
   - [x] Doc generation job (panvimdoc)
 - [x] Add dependabot
 - [x] Enforce PR ruleset
-      ggg
