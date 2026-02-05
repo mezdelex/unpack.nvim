@@ -1,4 +1,4 @@
-*unpack.nvim.txt*         For NVIM v0.8.0        Last change: 2026 February 04
+*unpack.nvim.txt*         For NVIM v0.8.0        Last change: 2026 February 05
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
@@ -22,7 +22,7 @@ DEMO                                                        *unpack.nvim-demo*
 Example config <https://github.com/mezdelex/neovim> using UnPack as daily
 driver.
 
-
+video
 <https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42>
 
 
