@@ -18,7 +18,7 @@ Example [config](https://github.com/mezdelex/neovim) using UnPack as daily drive
 
 ## Installation
 
-Add these lines to your init.lua:
+Add this line to your init.lua:
 
 ```lua
 vim.pack.add({ "https://github.com/mezdelex/unpack.nvim" }, { confirm = false })
