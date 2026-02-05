@@ -19,7 +19,7 @@ unpack is a minimal layer on top of vim.pack
 
 DEMO                                                        *unpack.nvim-demo*
 
-Example config <https://github.com/mezdelex/neovim> using UnPack as daily
+Example config <https://github.com/mezdelex/neovim> using unpack as daily
 driver.
 
 video
@@ -37,7 +37,7 @@ Add this line to your init.lua:
 
 SETUP                                                      *unpack.nvim-setup*
 
-`UnPack` automatically loads its default config on startup via `plugin`
+`unpack` automatically loads its default config on startup via `plugin`
 directory. Call setup right after the installation with your preferred options
 if you don’t like the defaults. Defaults are set with minimal interaction in
 mind, so if you want to be notified about all the changes, set `confirm` to
@@ -46,7 +46,7 @@ true and `force` to false.
 Available options:
 
 >lua
-    ---@class UnPack.Config.UserOpts
+    ---@class Unpack.Config.UserOpts
     --- Options for vim.pack.add
     ---@field add_options? vim.pack.keyset.add
     --- Options for vim.pack.update
@@ -72,10 +72,10 @@ SPEC                                                        *unpack.nvim-spec*
 This layer extends `vim.pack.Spec` to allow single file configurations.
 
 >lua
-    ---@class UnPack.Spec : vim.pack.Spec
+    ---@class Unpack.Spec : vim.pack.Spec
     ---@field config? fun()
     ---@field defer? boolean
-    ---@field dependencies? UnPack.Spec[]
+    ---@field dependencies? Unpack.Spec[]
 <
 
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run
@@ -128,7 +128,7 @@ Example plugin spec setups under `/lua/plugins/`:
 
 BUILD ~
 
-UnPack expects a `build` field inside `data` table for the build hook, so make
+unpack expects a `build` field inside `data` table for the build hook, so make
 sure you add it like shown in the first example. This is because `vim.pack`
 handles the event trigger internally and exposes `vim.pack.Spec`, not the
 extended one, so we need to rely on that table. The build hook is planned to be
@@ -149,7 +149,7 @@ For reference, this is the `autocmd` that listens to the event triggered by
             local kind = args.data.kind ---@type string
     
             if kind == "install" or kind == "update" then
-                local spec = args.data.spec ---@type UnPack.Spec
+                local spec = args.data.spec ---@type Unpack.Spec
     
                 commands.build({ spec })
             end
@@ -163,7 +163,7 @@ CONFLICTS ~
 
 Under WinOS, there are some permission problems related to the write rights on
 locked files and this affects the build hook when updating some plugins like
-`blink.cmp`. To address this, together with the `build` hook, `UnPack` expects
+`blink.cmp`. To address this, together with the `build` hook, `unpack` expects
 you to use `conflicts` hook inside the `data` table. This is like this because
 the `build` hook will eventually be handled by the plugin itself with the
 incoming `spec` changes as we stated before, so it makes sense to keep them
