@@ -28,7 +28,7 @@ video
 
 INSTALLATION                                        *unpack.nvim-installation*
 
-Add these lines to your init.lua:
+Add this line to your init.lua:
 
 >lua
     vim.pack.add({ "https://github.com/mezdelex/unpack.nvim" }, { confirm = false })
