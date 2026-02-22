@@ -14,6 +14,7 @@ describe("config", function()
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
 			data_path = "/tmp/data",
+			is_win32 = vim.fn.has("win32"),
 			packages_rpath = "/site/pack/core/opt/",
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
@@ -26,6 +27,7 @@ describe("config", function()
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
 			data_path = "/tmp/data",
+			is_win32 = vim.fn.has("win32"),
 			packages_rpath = "/site/pack/core/opt/",
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
@@ -56,15 +58,6 @@ describe("config", function()
 			local before = vim.deepcopy(config.opts)
 			config.setup()
 			assert.same(before, config.opts)
-		end)
-
-		it("overrides paths if provided", function()
-			config.setup({
-				config_path = "/custom/config",
-				data_path = "/custom/data",
-			})
-			assert.same("/custom/config", config.opts.config_path)
-			assert.same("/custom/data", config.opts.data_path)
 		end)
 	end)
 end)

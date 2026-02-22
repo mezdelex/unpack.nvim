@@ -71,6 +71,9 @@ M.vim_config_fixtures = {
 		return t
 	end,
 	fn = {
+		has = function(_)
+			return 0
+		end,
 		stdpath = function(kind)
 			return "/tmp/" .. kind
 		end,
