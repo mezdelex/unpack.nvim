@@ -1,4 +1,4 @@
-*unpack.nvim.txt*         For NVIM v0.8.0        Last change: 2026 February 05
+*unpack.nvim.txt*         For NVIM v0.8.0        Last change: 2026 February 22
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
@@ -47,9 +47,7 @@ Available options:
 
 >lua
     ---@class Unpack.Config.UserOpts
-    --- Options for vim.pack.add
     ---@field add_options? vim.pack.keyset.add
-    --- Options for vim.pack.update
     ---@field update_options? vim.pack.keyset.update
 <
 
