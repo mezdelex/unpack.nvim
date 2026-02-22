@@ -1,7 +1,5 @@
 ---@class Unpack.Config.UserOpts
---- Options for vim.pack.add
 ---@field add_options? vim.pack.keyset.add
---- Options for vim.pack.update
 ---@field update_options? vim.pack.keyset.update
 
 local M = {} ---@class Unpack.Config
@@ -11,6 +9,7 @@ M.opts = { ---@class Unpack.Config.Opts
 	config_path = vim.fn.stdpath("config"),
 	conflict_suffix = ".conflict",
 	data_path = vim.fn.stdpath("data"),
+	is_win32 = vim.fn.has("win32"),
 	packages_rpath = "/site/pack/core/opt/",
 	plugins_rpath = "/lua/plugins/",
 	unpack_package = "unpack.nvim",

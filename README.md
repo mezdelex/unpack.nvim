@@ -34,9 +34,7 @@ Available options:
 
 ```lua
 ---@class Unpack.Config.UserOpts
---- Options for vim.pack.add
 ---@field add_options? vim.pack.keyset.add
---- Options for vim.pack.update
 ---@field update_options? vim.pack.keyset.update
 ```
 

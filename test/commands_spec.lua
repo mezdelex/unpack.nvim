@@ -13,6 +13,7 @@ package.loaded["config"] = {
 		config_path = "/tmp/config/",
 		conflict_suffix = ".conflict",
 		data_path = "/tmp/data/",
+		is_win32 = vim.fn.has("win32"),
 		packages_rpath = "packages/",
 		plugins_rpath = "plugins/",
 		unpack_package = "unpack.nvim",

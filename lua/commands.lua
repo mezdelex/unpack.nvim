@@ -70,20 +70,22 @@ end
 ---@param spec Unpack.Spec
 ---@param config Unpack.Config
 local function handle_conflicts(package_fpath, spec, config)
-	if vim.fn.has("win32") == 1 and type(spec.data.conflicts) == "table" then
-		for _, conflict in ipairs(spec.data.conflicts) do
-			if type(conflict) == "string" then
-				local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
+	if config.opts.is_win32 ~= 1 or type(spec.data.conflicts) ~= "table" then
+		return
+	end
 
-				for _, match in ipairs(matches) do
-					local renamed = match .. config.opts.conflict_suffix
-					local ok, err = vim.uv.fs_rename(match, renamed)
+	for _, conflict in ipairs(spec.data.conflicts) do
+		if type(conflict) == "string" then
+			local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
 
-					if not ok then
-						vim.schedule(function()
-							vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
-						end)
-					end
+			for _, match in ipairs(matches) do
+				local renamed = match .. config.opts.conflict_suffix
+				local ok, err = vim.uv.fs_rename(match, renamed)
+
+				if not ok then
+					vim.schedule(function()
+						vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
+					end)
 				end
 			end
 		end
@@ -128,25 +130,23 @@ end
 ---@param package_name string
 ---@param config Unpack.Config
 local function clean_conflicts(spec, package_name, config)
-	if vim.fn.has("win32") == 1 and type(spec.data) == "table" and type(spec.data.conflicts) == "table" then
-		local matches = vim.fn.glob(
-			config.opts.data_path
-				.. config.opts.packages_rpath
-				.. package_name
-				.. "/**/*"
-				.. config.opts.conflict_suffix,
-			false,
-			true
-		) ---@type string[]
+	if config.opts.is_win32 ~= 1 or type(spec.data) ~= "table" or type(spec.data.conflicts) ~= "table" then
+		return
+	end
 
-		for _, match in ipairs(matches) do
-			local ok, err = vim.uv.fs_unlink(match)
+	local matches = vim.fn.glob(
+		config.opts.data_path .. config.opts.packages_rpath .. package_name .. "/**/*" .. config.opts.conflict_suffix,
+		false,
+		true
+	) ---@type string[]
 
-			if not ok then
-				vim.schedule(function()
-					vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
-				end)
-			end
+	for _, match in ipairs(matches) do
+		local ok, err = vim.uv.fs_unlink(match)
+
+		if not ok then
+			vim.schedule(function()
+				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
+			end)
 		end
 	end
 end
