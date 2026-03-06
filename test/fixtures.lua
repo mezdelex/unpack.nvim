@@ -110,6 +110,7 @@ M.vim_unpack_fixtures = {
 			_G.__last_user_command[name] = { fn = fn, opts = opts }
 		end,
 	},
+	g = {},
 	tbl_contains = function(tbl, val)
 		for _, v in ipairs(tbl) do
 			if v == val then

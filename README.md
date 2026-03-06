@@ -99,7 +99,10 @@ return {
 	end,
 	defer = true,
 	dependencies = {
-		{ src = "https://github.com/<vendor>/plugin2" },
+		{
+            defer = true,
+            src = "https://github.com/<vendor>/plugin2"
+        },
 	},
 	src = "https://github.com/<vendor>/plugin3",
 }

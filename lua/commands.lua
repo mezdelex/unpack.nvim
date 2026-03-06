@@ -18,9 +18,9 @@ local function get_specs_and_names()
 				vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
 			end)
 		else
-			if spec.dependencies and type(spec.dependencies) == "table" then
+			if type(spec.dependencies) == "table" then
 				for _, dep in ipairs(spec.dependencies) do
-					if dep.src and type(dep.src) == "string" then
+					if type(dep.src) == "string" then
 						specs[#specs + 1] = dep
 						names[#names + 1] = vim.fn.fnamemodify(dep.src, ":t")
 					else
@@ -33,7 +33,7 @@ local function get_specs_and_names()
 					end
 				end
 			end
-			if spec.src and type(spec.src) == "string" then
+			if type(spec.src) == "string" then
 				specs[#specs + 1] = spec
 				names[#names + 1] = vim.fn.fnamemodify(spec.src, ":t")
 			else
@@ -151,6 +151,17 @@ local function clean_conflicts(spec, package_name, config)
 	end
 end
 
+---@private
+---@param spec Unpack.Spec
+---@param config Unpack.Config
+local function load_spec(spec, config)
+	vim.pack.add({ spec }, config.opts.add_options)
+
+	if type(spec.config) == "function" then
+		spec.config()
+	end
+end
+
 local M = {} ---@class Unpack.Commands
 
 ---@param specs? Unpack.Spec[]
@@ -187,15 +198,13 @@ M.load = function()
 	local config = require("config")
 	local specs, _ = get_specs_and_names()
 
-	vim.pack.add(specs, config.opts.add_options)
-
 	for _, spec in ipairs(specs) do
-		if spec.config and type(spec.config) == "function" then
-			if spec.defer then
-				vim.schedule(spec.config)
-			else
-				spec.config()
-			end
+		if spec.defer then
+			vim.schedule(function()
+				load_spec(spec, config)
+			end)
+		else
+			load_spec(spec, config)
 		end
 	end
 end

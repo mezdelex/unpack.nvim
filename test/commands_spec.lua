@@ -130,9 +130,7 @@ describe("commands", function()
 
 		it("skips conflict handling on non-Windows", function()
 			local glob_called = false
-			vim.fn.has = function(feature)
-				return feature == "win32" and 0 or 1
-			end
+			package.loaded["config"].opts.is_win32 = 0
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
 			end
@@ -155,9 +153,7 @@ describe("commands", function()
 
 		it("handles fs_rename failure gracefully", function()
 			local msgs = {}
-			vim.fn.has = function(feature)
-				return feature == "win32" and 1 or 0
-			end
+			package.loaded["config"].opts.is_win32 = 1
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
 			end
@@ -212,14 +208,12 @@ describe("commands", function()
 
 		it("cleans conflict files on Windows", function()
 			local unlink_calls = {}
+			package.loaded["config"].opts.is_win32 = 1
 			package.loaded["plugins.test"] = {
 				src = "/tmp/data/packages/test",
 				data = { conflicts = { "a.dll" } },
 			}
 
-			vim.fn.has = function(feature)
-				return feature == "win32" and 1 or 0
-			end
 			vim.fn.glob = function(path)
 				if path == "/tmp/data/packages/test/**/*.conflict" then
 					return {
@@ -255,14 +249,12 @@ describe("commands", function()
 
 		it("handles unlink failure gracefully", function()
 			local msgs = {}
+			package.loaded["config"].opts.is_win32 = 1
 			package.loaded["plugins.test"] = {
 				src = "/tmp/data/packages/test",
 				data = { conflicts = { "a.dll" } },
 			}
 
-			vim.fn.has = function(feature)
-				return feature == "win32" and 1 or 0
-			end
 			vim.fn.glob = function(path)
 				if path == "/tmp/data/packages/test/**/*.conflict" then
 					return { "/tmp/data/packages/test/a.dll.conflict" }
@@ -364,12 +356,16 @@ describe("commands", function()
 			vim.fn.fnamemodify = function(_, _)
 				return "a"
 			end
-			local added
-			vim.pack.add = function(specs)
-				added = specs
+			local added, opts
+			vim.pack.add = function(specs, options)
+				added, opts = specs, options
 			end
 			commands.load()
-			assert.is_not_nil(added)
+			assert.is_table(added)
+			assert.equals(1, #added)
+			assert.equals("a", added[1].src)
+			assert.is_function(added[1].config)
+			assert.same({}, opts)
 			assert.True(cfg)
 		end)
 
@@ -388,13 +384,24 @@ describe("commands", function()
 			vim.fn.fnamemodify = function(_, _)
 				return "b"
 			end
-			local scheduled
+			local scheduled, added, opts
 			vim.schedule = function(f)
 				scheduled = f
 			end
+			vim.pack.add = function(specs, options)
+				added, opts = specs, options
+			end
 			commands.load()
 			assert.is_function(scheduled)
+			assert.is_nil(added)
+			assert.False(ran)
 			scheduled()
+			assert.is_table(added)
+			assert.equals(1, #added)
+			assert.equals("b", added[1].src)
+			assert.equals(true, added[1].defer)
+			assert.is_function(added[1].config)
+			assert.same({}, opts)
 			assert.True(ran)
 		end)
 	end)
