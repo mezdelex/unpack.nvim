@@ -1,4 +1,4 @@
-*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 March 02
+*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 March 06
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
@@ -114,7 +114,10 @@ Example plugin spec setups under `/lua/plugins/`:
         end,
         defer = true,
         dependencies = {
-            { src = "https://github.com/<vendor>/plugin2" },
+            {
+                defer = true,
+                src = "https://github.com/<vendor>/plugin2"
+            },
         },
         src = "https://github.com/<vendor>/plugin3",
     }
