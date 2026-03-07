@@ -47,12 +47,14 @@ describe("unpack.setup", function()
 	it("calls config.setup with opts", function()
 		unpack.setup({ foo = "bar" })
 		local config = package.loaded["config"]
+
 		assert.same({ foo = "bar" }, config.__called())
 	end)
 
 	it("creates augroup and autocmd for PackChanged", function()
 		unpack.setup()
 		local ac = _G.__last_autocmd
+
 		assert.same("PackChanged", ac.event)
 		assert.is_function(ac.opts.callback)
 	end)
@@ -61,11 +63,9 @@ describe("unpack.setup", function()
 		local commands = package.loaded["commands"]
 		unpack.setup()
 		local cb = _G.__last_autocmd.opts.callback
-
 		cb({ data = { kind = "install", spec = { src = "a" } } })
 		cb({ data = { kind = "update", spec = { src = "b" } } })
 		cb({ data = { kind = "remove", spec = { src = "c" } } })
-
 		local names = {}
 		for _, c in ipairs(commands.__calls) do
 			table.insert(names, c[1])
@@ -79,6 +79,7 @@ describe("unpack.setup", function()
 	it("registers user commands", function()
 		unpack.setup()
 		local uc = _G.__last_user_command
+
 		assert.is_function(uc.PackBuild.fn)
 		assert.is_function(uc.PackClean.fn)
 		assert.is_function(uc.PackLoad.fn)
@@ -92,6 +93,7 @@ describe("unpack.setup", function()
 		for _, c in ipairs(commands.__calls) do
 			table.insert(names, c[1])
 		end
+
 		assert.True(vim.tbl_contains(names, "load"))
 	end)
 end)

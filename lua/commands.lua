@@ -1,9 +1,9 @@
 ---@private
----@return Unpack.Spec[], string[]
+---@return Unpack.Spec[], Unpack.Spec[], string[]
 local function get_specs_and_names()
 	local config = require("config")
 	local plugin_fpaths = vim.fn.glob(config.opts.config_path .. config.opts.plugins_rpath .. "*.lua", true, true) ---@type string[]
-	local specs, names = {}, {} ---@type Unpack.Spec[], string[]
+	local deferred_specs, eager_specs, names = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], string[]
 
 	for _, plugin_fpath in ipairs(plugin_fpaths) do
 		local plugin_name = vim.fn.fnamemodify(plugin_fpath, ":t:r")
@@ -18,11 +18,19 @@ local function get_specs_and_names()
 				vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
 			end)
 		else
+			local function fill_specs_and_names(_spec)
+				if _spec.defer then
+					deferred_specs[#deferred_specs + 1] = _spec
+				else
+					eager_specs[#eager_specs + 1] = _spec
+				end
+				names[#names + 1] = vim.fn.fnamemodify(_spec.src, ":t")
+			end
+
 			if type(spec.dependencies) == "table" then
 				for _, dep in ipairs(spec.dependencies) do
 					if type(dep.src) == "string" then
-						specs[#specs + 1] = dep
-						names[#names + 1] = vim.fn.fnamemodify(dep.src, ":t")
+						fill_specs_and_names(dep)
 					else
 						vim.schedule(function()
 							vim.notify(
@@ -33,9 +41,9 @@ local function get_specs_and_names()
 					end
 				end
 			end
+
 			if type(spec.src) == "string" then
-				specs[#specs + 1] = spec
-				names[#names + 1] = vim.fn.fnamemodify(spec.src, ":t")
+				fill_specs_and_names(spec)
 			else
 				vim.schedule(function()
 					vim.notify(("Invalid spec for %s, missing src"):format(plugin_name), vim.log.levels.ERROR)
@@ -44,7 +52,7 @@ local function get_specs_and_names()
 		end
 	end
 
-	return specs, names
+	return deferred_specs, eager_specs, names
 end
 
 ---@private
@@ -93,36 +101,40 @@ local function handle_conflicts(package_fpath, spec, config)
 end
 
 ---@private
----@param spec Unpack.Spec
-local function handle_build(spec)
-	if
-		type(spec.src) ~= "string"
-		or type(spec.data) ~= "table"
-		or type(spec.data.build) ~= "string"
-		or spec.data.build:is_empty_or_whitespace()
-	then
-		return
+---@param specs Unpack.Spec[]
+local function handle_builds(specs)
+	for _, spec in ipairs(specs) do
+		if
+			type(spec.src) ~= "string"
+			or type(spec.data) ~= "table"
+			or type(spec.data.build) ~= "string"
+			or spec.data.build:is_empty_or_whitespace()
+		then
+			goto continue
+		end
+
+		local config = require("config")
+		local package_name = vim.fn.fnamemodify(spec.src, ":t")
+		local package_fpath = config.opts.data_path .. config.opts.packages_rpath .. package_name ---@type string
+		local stat = vim.uv.fs_stat(package_fpath)
+
+		if not stat or stat.type ~= "directory" then
+			goto continue
+		end
+
+		handle_conflicts(package_fpath, spec, config)
+
+		vim.schedule(function()
+			vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
+			local response = vim.system(vim.split(spec.data.build, " "), { cwd = package_fpath }):wait()
+			vim.notify(
+				("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", package_name),
+				response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
+			)
+		end)
+
+		::continue::
 	end
-
-	local config = require("config")
-	local package_name = vim.fn.fnamemodify(spec.src, ":t")
-	local package_fpath = config.opts.data_path .. config.opts.packages_rpath .. package_name ---@type string
-	local stat = vim.uv.fs_stat(package_fpath)
-
-	if not stat or stat.type ~= "directory" then
-		return
-	end
-
-	handle_conflicts(package_fpath, spec, config)
-
-	vim.schedule(function()
-		vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
-		local response = vim.system(vim.split(spec.data.build, " "), { cwd = package_fpath }):wait()
-		vim.notify(
-			("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", package_name),
-			response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
-		)
-	end)
 end
 
 ---@private
@@ -152,13 +164,15 @@ local function clean_conflicts(spec, package_name, config)
 end
 
 ---@private
----@param spec Unpack.Spec
+---@param specs Unpack.Spec[]
 ---@param config Unpack.Config
-local function load_spec(spec, config)
-	vim.pack.add({ spec }, config.opts.add_options)
+local function load_specs(specs, config)
+	vim.pack.add(specs, config.opts.add_options)
 
-	if type(spec.config) == "function" then
-		spec.config()
+	for _, spec in ipairs(specs) do
+		if type(spec.config) == "function" then
+			spec.config()
+		end
 	end
 end
 
@@ -166,23 +180,30 @@ local M = {} ---@class Unpack.Commands
 
 ---@param specs? Unpack.Spec[]
 M.build = function(specs)
+	local deferred_specs = {} ---@type Unpack.Spec[]
+
 	if not specs or #specs == 0 then
-		specs, _ = get_specs_and_names()
+		deferred_specs, specs, _ = get_specs_and_names()
 	end
 
-	for _, spec in ipairs(specs) do
-		handle_build(spec)
-	end
+	handle_builds(deferred_specs)
+	handle_builds(specs)
 end
 M.clean = function()
 	local config = require("config")
-	local names_set, packages_to_delete = {}, {} ---@type table<string, Unpack.Spec>, string[]
+	local deferred_specs, eager_specs, names = get_specs_and_names()
+	local idx, names_set, packages_to_delete = 1, {}, {} ---@type number, table<string, Unpack.Spec>, string[]
 	local package_names = get_package_names()
-	local specs, names = get_specs_and_names()
 
-	for idx, name in ipairs(names) do
-		names_set[name] = specs[idx]
+	local function fill_names_set(_specs)
+		for _, spec in ipairs(_specs) do
+			names_set[names[idx]] = spec
+			idx = idx + 1
+		end
 	end
+
+	fill_names_set(deferred_specs)
+	fill_names_set(eager_specs)
 
 	for _, package_name in ipairs(package_names) do
 		if names_set[package_name] == nil then
@@ -196,17 +217,12 @@ M.clean = function()
 end
 M.load = function()
 	local config = require("config")
-	local specs, _ = get_specs_and_names()
+	local deferred_specs, eager_specs, _ = get_specs_and_names()
 
-	for _, spec in ipairs(specs) do
-		if spec.defer then
-			vim.schedule(function()
-				load_spec(spec, config)
-			end)
-		else
-			load_spec(spec, config)
-		end
-	end
+	vim.schedule(function()
+		load_specs(deferred_specs, config)
+	end)
+	load_specs(eager_specs, config)
 end
 M.update = function()
 	local config = require("config")

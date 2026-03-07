@@ -29,6 +29,7 @@ describe("string.is_empty_or_whitespace", function()
 		end
 		string.is_empty_or_whitespace = old
 		dofile("lua/extensions.lua")
+
 		assert.equal("sentinel", string.is_empty_or_whitespace())
 	end)
 end)
