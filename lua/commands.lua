@@ -219,10 +219,10 @@ M.load = function()
 	local config = require("config")
 	local deferred_specs, eager_specs, _ = get_specs_and_names()
 
+	load_specs(eager_specs, config)
 	vim.schedule(function()
 		load_specs(deferred_specs, config)
 	end)
-	load_specs(eager_specs, config)
 end
 M.update = function()
 	local config = require("config")

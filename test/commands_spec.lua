@@ -681,18 +681,18 @@ describe("commands", function()
 			vim.fn.fnamemodify = function(_, _)
 				return "a"
 			end
-			local added, opts
+			local add_calls = {}
 			vim.pack.add = function(specs, options)
-				added, opts = specs, options
+				add_calls[#add_calls + 1] = { specs = specs, opts = options }
 			end
 
 			commands.load()
 
-			assert.is_table(added)
-			assert.equals(1, #added)
-			assert.equals("a", added[1].src)
-			assert.is_function(added[1].config)
-			assert.same({}, opts)
+			assert.equals(2, #add_calls)
+			assert.equals(1, #add_calls[1].specs)
+			assert.equals("a", add_calls[1].specs[1].src)
+			assert.is_function(add_calls[1].specs[1].config)
+			assert.same({}, add_calls[1].opts)
 			assert.True(cfg)
 		end)
 
