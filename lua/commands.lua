@@ -18,6 +18,8 @@ local function get_specs_and_names()
 				vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
 			end)
 		else
+			---@private
+			---@param _spec Unpack.Spec
 			local function fill_specs_and_names(_spec)
 				if _spec.defer then
 					deferred_specs[#deferred_specs + 1] = _spec
@@ -195,6 +197,8 @@ M.clean = function()
 	local idx, names_set, packages_to_delete = 1, {}, {} ---@type number, table<string, Unpack.Spec>, string[]
 	local package_names = get_package_names()
 
+	---@private
+	---@param _specs Unpack.Spec[]
 	local function fill_names_set(_specs)
 		for _, spec in ipairs(_specs) do
 			names_set[names[idx]] = spec
