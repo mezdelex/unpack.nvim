@@ -4,7 +4,7 @@
   <br>
   <b>unpack is a minimal layer on top of vim.pack</b>
 </p>
-<br clear="all" />
+<br/>
 
 > [!IMPORTANT]
 >
