@@ -171,8 +171,10 @@ Every spec marked with `defer = true` is going to be deferred using `vim.schedul
 
 ### Dependencies
 
-The dependencies handling logic is pretty simple: the plugins are going to be loaded in order, so make sure to add the dependencies in order too.
+The dependencies handling logic is pretty simple: the plugins are going to be loaded following the `plugins` directory name order, so make sure to add the dependencies properly.
 For example, if any of your plugins relies on `plenary` as a dependency, add it in the first plugin that requires it following your `plugins` directory name order, and that's pretty much it.
+Note that unpack treats every `spec` separately, so you could still include the dependencies in order, defer a specific plugin and still eagerly load its dependencies so they would be available for the following eagerly loaded ones that might require those dependencies.
+Whatever makes more sense to you.
 
 ## Commands
 
