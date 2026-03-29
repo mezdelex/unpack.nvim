@@ -1,9 +1,9 @@
-*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 March 25
+*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 March 29
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
 
-  - Demo                                                    |unpack.nvim-demo|
+  - Example                                              |unpack.nvim-example|
   - Installation                                    |unpack.nvim-installation|
   - Setup                                                  |unpack.nvim-setup|
   - Spec                                                    |unpack.nvim-spec|
@@ -14,16 +14,10 @@ Table of Contents                              *unpack.nvim-table-of-contents*
 unpack is a minimal layer on top of vim.pack
 
 
-  [!IMPORTANT]
-  `vim.pack` is currently under development in the `neovim-nightly` branch.
-
-DEMO                                                        *unpack.nvim-demo*
+EXAMPLE                                                  *unpack.nvim-example*
 
 Example config <https://github.com/mezdelex/neovim> using unpack as daily
 driver.
-
-video
-<https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42>
 
 
 INSTALLATION                                        *unpack.nvim-installation*

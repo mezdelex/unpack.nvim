@@ -6,10 +6,6 @@
 </p>
 <br/>
 
-## Example
-
-Example [config](https://github.com/mezdelex/neovim) using unpack as daily driver.
-
 ## Installation
 
 Add this line to your init.lua:
@@ -58,6 +54,8 @@ This layer extends `vim.pack.Spec` to allow single file configurations.
 ```
 
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run plugin build hooks. The same `command` that is fired inside the event is provided as a standalone one. See `Commands` section.
+
+Example [config](https://github.com/mezdelex/neovim) using unpack as daily driver.
 
 Example plugin spec setups under `/lua/plugins/`:
 
