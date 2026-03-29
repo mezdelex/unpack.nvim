@@ -6,15 +6,9 @@
 </p>
 <br/>
 
-> [!IMPORTANT]
->
-> `vim.pack` is currently under development in the `neovim-nightly` branch.
-
-## Demo
+## Example
 
 Example [config](https://github.com/mezdelex/neovim) using unpack as daily driver.
-
-[video](https://github.com/user-attachments/assets/f17b8de4-8b8d-4a92-8dfb-778d4ce3de42)
 
 ## Installation
 
