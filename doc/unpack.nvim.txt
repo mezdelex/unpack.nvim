@@ -3,7 +3,6 @@
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
 
-  - Example                                              |unpack.nvim-example|
   - Installation                                    |unpack.nvim-installation|
   - Setup                                                  |unpack.nvim-setup|
   - Spec                                                    |unpack.nvim-spec|
@@ -12,12 +11,6 @@ Table of Contents                              *unpack.nvim-table-of-contents*
 
 
 unpack is a minimal layer on top of vim.pack
-
-
-EXAMPLE                                                  *unpack.nvim-example*
-
-Example config <https://github.com/mezdelex/neovim> using unpack as daily
-driver.
 
 
 INSTALLATION                                        *unpack.nvim-installation*
@@ -73,6 +66,9 @@ This layer extends `vim.pack.Spec` to allow single file configurations.
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run
 plugin build hooks. The same `command` that is fired inside the event is
 provided as a standalone one. See `Commands` section.
+
+Example config <https://github.com/mezdelex/neovim> using unpack as daily
+driver.
 
 Example plugin spec setups under `/lua/plugins/`:
 
