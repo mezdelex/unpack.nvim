@@ -5,6 +5,17 @@ local function get_specs_and_names()
 	local plugin_fpaths = vim.fn.glob(config.opts.config_path .. config.opts.plugins_rpath .. "*.lua", true, true) ---@type string[]
 	local deferred_specs, eager_specs, names = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], string[]
 
+	---@private
+	---@param _spec Unpack.Spec
+	local function fill_specs_and_names(_spec)
+		if _spec.defer then
+			deferred_specs[#deferred_specs + 1] = _spec
+		else
+			eager_specs[#eager_specs + 1] = _spec
+		end
+		names[#names + 1] = vim.fn.fnamemodify(_spec.src, ":t")
+	end
+
 	for _, plugin_fpath in ipairs(plugin_fpaths) do
 		local plugin_name = vim.fn.fnamemodify(plugin_fpath, ":t:r")
 		local success, spec = pcall(require, "plugins." .. plugin_name) ---@type boolean, Unpack.Spec
@@ -18,17 +29,6 @@ local function get_specs_and_names()
 				vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
 			end)
 		else
-			---@private
-			---@param _spec Unpack.Spec
-			local function fill_specs_and_names(_spec)
-				if _spec.defer then
-					deferred_specs[#deferred_specs + 1] = _spec
-				else
-					eager_specs[#eager_specs + 1] = _spec
-				end
-				names[#names + 1] = vim.fn.fnamemodify(_spec.src, ":t")
-			end
-
 			if type(spec.dependencies) == "table" then
 				for _, dep in ipairs(spec.dependencies) do
 					if type(dep.src) == "string" then
