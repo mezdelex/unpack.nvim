@@ -538,7 +538,7 @@ describe("commands", function()
 			package.loaded["plugins.parent"] = {
 				src = "parent",
 				dependencies = {
-					{ name = "no-src" }, -- missing src
+					{ name = "no-src" },
 				},
 			}
 			vim.fn.glob = function()
@@ -557,7 +557,7 @@ describe("commands", function()
 			commands.load()
 
 			assert.equals(1, #msgs)
-			assert.same("Invalid dependency for parent, missing src", msgs[1][1])
+			assert.same("Invalid spec for parent, missing src", msgs[1][1])
 			assert.same(vim.log.levels.ERROR, msgs[1][2])
 		end)
 

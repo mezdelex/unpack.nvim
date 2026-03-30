@@ -1,19 +1,33 @@
 ---@private
----@return Unpack.Spec[], Unpack.Spec[], string[]
+---@return Unpack.Spec[], Unpack.Spec[], table<string, Unpack.Spec>
 local function get_specs_and_names()
 	local config = require("config")
 	local plugin_fpaths = vim.fn.glob(config.opts.config_path .. config.opts.plugins_rpath .. "*.lua", true, true) ---@type string[]
-	local deferred_specs, eager_specs, names = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], string[]
+	local deferred_specs, eager_specs, names_set = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], table<string, Unpack.Spec>
+
+	---@private
+	---@param spec Unpack.Spec
+	---@param plugin_name string
+	---@return boolean
+	local function validate_spec(spec, plugin_name)
+		if type(spec.src) ~= "string" then
+			vim.schedule(function()
+				vim.notify(("Invalid spec for %s, missing src"):format(plugin_name), vim.log.levels.ERROR)
+			end)
+			return false
+		end
+		return true
+	end
 
 	---@private
 	---@param _spec Unpack.Spec
-	local function fill_specs_and_names(_spec)
+	local function add_spec(_spec)
 		if _spec.defer then
 			deferred_specs[#deferred_specs + 1] = _spec
 		else
 			eager_specs[#eager_specs + 1] = _spec
 		end
-		names[#names + 1] = vim.fn.fnamemodify(_spec.src, ":t")
+		names_set[vim.fn.fnamemodify(_spec.src, ":t")] = _spec
 	end
 
 	for _, plugin_fpath in ipairs(plugin_fpaths) do
@@ -31,30 +45,19 @@ local function get_specs_and_names()
 		else
 			if type(spec.dependencies) == "table" then
 				for _, dep in ipairs(spec.dependencies) do
-					if type(dep.src) == "string" then
-						fill_specs_and_names(dep)
-					else
-						vim.schedule(function()
-							vim.notify(
-								("Invalid dependency for %s, missing src"):format(plugin_name),
-								vim.log.levels.ERROR
-							)
-						end)
+					if validate_spec(dep, plugin_name) then
+						add_spec(dep)
 					end
 				end
 			end
 
-			if type(spec.src) == "string" then
-				fill_specs_and_names(spec)
-			else
-				vim.schedule(function()
-					vim.notify(("Invalid spec for %s, missing src"):format(plugin_name), vim.log.levels.ERROR)
-				end)
+			if validate_spec(spec, plugin_name) then
+				add_spec(spec)
 			end
 		end
 	end
 
-	return deferred_specs, eager_specs, names
+	return deferred_specs, eager_specs, names_set
 end
 
 ---@private
@@ -193,21 +196,9 @@ M.build = function(specs)
 end
 M.clean = function()
 	local config = require("config")
-	local deferred_specs, eager_specs, names = get_specs_and_names()
-	local idx, names_set, packages_to_delete = 1, {}, {} ---@type number, table<string, Unpack.Spec>, string[]
+	local names_set = select(3, get_specs_and_names())
+	local packages_to_delete = {} ---@type string[]
 	local package_names = get_package_names()
-
-	---@private
-	---@param _specs Unpack.Spec[]
-	local function fill_names_set(_specs)
-		for _, spec in ipairs(_specs) do
-			names_set[names[idx]] = spec
-			idx = idx + 1
-		end
-	end
-
-	fill_names_set(deferred_specs)
-	fill_names_set(eager_specs)
 
 	for _, package_name in ipairs(package_names) do
 		if names_set[package_name] == nil then
