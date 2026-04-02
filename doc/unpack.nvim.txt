@@ -1,4 +1,4 @@
-*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 March 30
+*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 April 02
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
@@ -34,8 +34,8 @@ Available options:
 
 >lua
     ---@class Unpack.Config.UserOpts
-    ---@field add_options? vim.pack.keyset.add
-    ---@field update_options? vim.pack.keyset.update
+    ---@field add_options vim.pack.keyset.add?
+    ---@field update_options vim.pack.keyset.update?
 <
 
 See |vim.pack.add| and |vim.pack.update| opts.
@@ -58,9 +58,9 @@ This layer extends `vim.pack.Spec` to allow single file configurations.
 
 >lua
     ---@class Unpack.Spec : vim.pack.Spec
-    ---@field config? fun()
-    ---@field defer? boolean
-    ---@field dependencies? Unpack.Spec[]
+    ---@field config fun()?
+    ---@field defer boolean?
+    ---@field dependencies Unpack.Spec[]?
 <
 
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run
