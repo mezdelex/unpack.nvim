@@ -6,13 +6,13 @@ local function get_specs_and_names()
 	local deferred_specs, eager_specs, names_set = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], table<string, Unpack.Spec>
 
 	---@private
-	---@param spec Unpack.Spec
-	---@param plugin_name string
+	---@param _spec Unpack.Spec
+	---@param _plugin_name string
 	---@return boolean
-	local function validate_spec(spec, plugin_name)
-		if type(spec.src) ~= "string" then
+	local function validate_spec(_spec, _plugin_name)
+		if type(_spec.src) ~= "string" then
 			vim.schedule(function()
-				vim.notify(("Invalid spec for %s, missing src"):format(plugin_name), vim.log.levels.ERROR)
+				vim.notify(("Invalid spec for %s, missing src"):format(_plugin_name), vim.log.levels.ERROR)
 			end)
 			return false
 		end
