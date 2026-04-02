@@ -1,6 +1,6 @@
 ---@class Unpack.Config.UserOpts
----@field add_options? vim.pack.keyset.add
----@field update_options? vim.pack.keyset.update
+---@field add_options vim.pack.keyset.add?
+---@field update_options vim.pack.keyset.update?
 
 local M = {} ---@class Unpack.Config
 
@@ -15,7 +15,7 @@ M.opts = { ---@class Unpack.Config.Opts
 	unpack_package = "unpack.nvim",
 	update_options = { force = true }, ---@type vim.pack.keyset.update
 }
----@param opts? Unpack.Config.UserOpts
+---@param opts Unpack.Config.UserOpts?
 M.setup = function(opts)
 	M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 end

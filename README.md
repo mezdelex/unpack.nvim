@@ -24,8 +24,8 @@ Available options:
 
 ```lua
 ---@class Unpack.Config.UserOpts
----@field add_options? vim.pack.keyset.add
----@field update_options? vim.pack.keyset.update
+---@field add_options vim.pack.keyset.add?
+---@field update_options vim.pack.keyset.update?
 ```
 
 See `:h vim.pack.add` and `:h vim.pack.update` opts.
@@ -48,9 +48,9 @@ This layer extends `vim.pack.Spec` to allow single file configurations.
 
 ```lua
 ---@class Unpack.Spec : vim.pack.Spec
----@field config? fun()
----@field defer? boolean
----@field dependencies? Unpack.Spec[]
+---@field config fun()?
+---@field defer boolean?
+---@field dependencies Unpack.Spec[]?
 ```
 
 It also leverages `PackChanged` event triggered by `vim.pack` internals to run plugin build hooks. The same `command` that is fired inside the event is provided as a standalone one. See `Commands` section.

@@ -1,11 +1,11 @@
 ---@class Unpack.Spec : vim.pack.Spec
----@field config? fun()
----@field defer? boolean
----@field dependencies? Unpack.Spec[]
+---@field config fun()?
+---@field defer boolean?
+---@field dependencies Unpack.Spec[]?
 
 local M = {} ---@class Unpack
 
----@param opts? Unpack.Config.UserOpts
+---@param opts Unpack.Config.UserOpts?
 function M.setup(opts)
 	local commands = require("commands")
 	local config = require("config")

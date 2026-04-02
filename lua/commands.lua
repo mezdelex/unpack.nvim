@@ -183,7 +183,7 @@ end
 
 local M = {} ---@class Unpack.Commands
 
----@param specs? Unpack.Spec[]
+---@param specs Unpack.Spec[]?
 M.build = function(specs)
 	local deferred_specs = {} ---@type Unpack.Spec[]
 
