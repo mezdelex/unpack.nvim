@@ -1,4 +1,50 @@
 ---@private
+---@param data table
+local function handle_conflicts(data)
+	local config = require("config")
+	if config.opts.is_win32 ~= 1 or type(data.spec.data.conflicts) ~= "table" then
+		return
+	end
+
+	for _, conflict in ipairs(data.spec.data.conflicts) do
+		if type(conflict) == "string" then
+			local matches = vim.fn.glob(data.path .. "/**/" .. conflict, false, true) ---@type string[]
+			for _, match in ipairs(matches) do
+				local ok, err = vim.uv.fs_rename(match, match .. config.opts.conflict_suffix)
+				if not ok then
+					vim.schedule(function()
+						vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
+					end)
+				end
+			end
+		end
+	end
+end
+
+---@private
+---@param plug_data vim.pack.PlugData
+---@param config Unpack.Config
+local function clean_conflicts(plug_data, config)
+	if
+		config.opts.is_win32 ~= 1
+		or type(plug_data.spec.data) ~= "table"
+		or type(plug_data.spec.data.conflicts) ~= "table"
+	then
+		return
+	end
+
+	local matches = vim.fn.glob(plug_data.path .. "/**/*" .. config.opts.conflict_suffix, false, true) ---@type string[]
+	for _, match in ipairs(matches) do
+		local ok, err = vim.uv.fs_unlink(match)
+		if not ok then
+			vim.schedule(function()
+				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
+			end)
+		end
+	end
+end
+
+---@private
 ---@param config Unpack.Config
 ---@return Unpack.Spec[], Unpack.Spec[]
 local function get_specs(config)
@@ -57,52 +103,6 @@ local function get_specs(config)
 	end
 
 	return deferred_specs, eager_specs
-end
-
----@private
----@param data table
-local function handle_conflicts(data)
-	local config = require("config")
-	if config.opts.is_win32 ~= 1 or type(data.spec.data.conflicts) ~= "table" then
-		return
-	end
-
-	for _, conflict in ipairs(data.spec.data.conflicts) do
-		if type(conflict) == "string" then
-			local matches = vim.fn.glob(data.path .. "/**/" .. conflict, false, true) ---@type string[]
-			for _, match in ipairs(matches) do
-				local ok, err = vim.uv.fs_rename(match, match .. config.opts.conflict_suffix)
-				if not ok then
-					vim.schedule(function()
-						vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
-					end)
-				end
-			end
-		end
-	end
-end
-
----@private
----@param plug_data vim.pack.PlugData
----@param config Unpack.Config
-local function clean_conflicts(plug_data, config)
-	if
-		config.opts.is_win32 ~= 1
-		or type(plug_data.spec.data) ~= "table"
-		or type(plug_data.spec.data.conflicts) ~= "table"
-	then
-		return
-	end
-
-	local matches = vim.fn.glob(plug_data.path .. "/**/*" .. config.opts.conflict_suffix, false, true) ---@type string[]
-	for _, match in ipairs(matches) do
-		local ok, err = vim.uv.fs_unlink(match)
-		if not ok then
-			vim.schedule(function()
-				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
-			end)
-		end
-	end
 end
 
 ---@private
