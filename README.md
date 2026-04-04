@@ -53,7 +53,7 @@ This layer extends `vim.pack.Spec` to allow single file configurations.
 ---@field dependencies Unpack.Spec[]?
 ```
 
-It also leverages `PackChanged` event triggered by `vim.pack` internals to run plugin build hooks. The same `command` that is fired inside the event is provided as a standalone one. See `Commands` section.
+It also leverages `PackChanged` event triggered by `vim.pack` internals to run plugin build hooks.
 
 Example [config](https://github.com/mezdelex/neovim) using unpack as daily driver.
 
