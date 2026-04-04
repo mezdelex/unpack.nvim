@@ -1,9 +1,9 @@
 ---@private
----@return Unpack.Spec[], Unpack.Spec[], table<string, Unpack.Spec>
-local function get_specs_and_names()
-	local config = require("config")
+---@param config Unpack.Config
+---@return Unpack.Spec[], Unpack.Spec[]
+local function get_specs(config)
 	local plugin_fpaths = vim.fn.glob(config.opts.config_path .. config.opts.plugins_rpath .. "*.lua", true, true) ---@type string[]
-	local deferred_specs, eager_specs, names_set = {}, {}, {} ---@type Unpack.Spec[], Unpack.Spec[], table<string, Unpack.Spec>
+	local deferred_specs, eager_specs = {}, {} ---@type Unpack.Spec[], Unpack.Spec[]
 
 	---@private
 	---@param _spec Unpack.Spec
@@ -27,7 +27,6 @@ local function get_specs_and_names()
 		else
 			eager_specs[#eager_specs + 1] = _spec
 		end
-		names_set[vim.fn.fnamemodify(_spec.src, ":t")] = _spec
 	end
 
 	for _, plugin_fpath in ipairs(plugin_fpaths) do
@@ -57,44 +56,22 @@ local function get_specs_and_names()
 		end
 	end
 
-	return deferred_specs, eager_specs, names_set
+	return deferred_specs, eager_specs
 end
 
 ---@private
----@return string[]
-local function get_package_names()
+---@param data table
+local function handle_conflicts(data)
 	local config = require("config")
-	local package_fpaths = vim.fn.glob(config.opts.data_path .. config.opts.packages_rpath .. "*/", false, true) ---@type string[]
-	local package_names = {} ---@type string[]
-
-	for _, package_fpath in ipairs(package_fpaths) do
-		local package_name = vim.fn.fnamemodify(package_fpath:sub(1, -2), ":t")
-
-		if package_name ~= config.opts.unpack_package then
-			package_names[#package_names + 1] = package_name
-		end
-	end
-
-	return package_names
-end
-
----@private
----@param package_fpath string
----@param spec Unpack.Spec
----@param config Unpack.Config
-local function handle_conflicts(package_fpath, spec, config)
-	if config.opts.is_win32 ~= 1 or type(spec.data.conflicts) ~= "table" then
+	if config.opts.is_win32 ~= 1 or type(data.spec.data.conflicts) ~= "table" then
 		return
 	end
 
-	for _, conflict in ipairs(spec.data.conflicts) do
+	for _, conflict in ipairs(data.spec.data.conflicts) do
 		if type(conflict) == "string" then
-			local matches = vim.fn.glob(package_fpath .. "/**/" .. conflict, false, true) ---@type string[]
-
+			local matches = vim.fn.glob(data.path .. "/**/" .. conflict, false, true) ---@type string[]
 			for _, match in ipairs(matches) do
-				local renamed = match .. config.opts.conflict_suffix
-				local ok, err = vim.uv.fs_rename(match, renamed)
-
+				local ok, err = vim.uv.fs_rename(match, match .. config.opts.conflict_suffix)
 				if not ok then
 					vim.schedule(function()
 						vim.notify(("Rename failed: %s"):format(err), vim.log.levels.ERROR)
@@ -106,60 +83,20 @@ local function handle_conflicts(package_fpath, spec, config)
 end
 
 ---@private
----@param specs Unpack.Spec[]
-local function handle_builds(specs)
-	for _, spec in ipairs(specs) do
-		if
-			type(spec.src) ~= "string"
-			or type(spec.data) ~= "table"
-			or type(spec.data.build) ~= "string"
-			or spec.data.build:is_empty_or_whitespace()
-		then
-			goto continue
-		end
-
-		local config = require("config")
-		local package_name = vim.fn.fnamemodify(spec.src, ":t")
-		local package_fpath = config.opts.data_path .. config.opts.packages_rpath .. package_name ---@type string
-		local stat = vim.uv.fs_stat(package_fpath)
-
-		if not stat or stat.type ~= "directory" then
-			goto continue
-		end
-
-		handle_conflicts(package_fpath, spec, config)
-
-		vim.schedule(function()
-			vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
-			local response = vim.system(vim.split(spec.data.build, " "), { cwd = package_fpath }):wait()
-			vim.notify(
-				("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", package_name),
-				response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
-			)
-		end)
-
-		::continue::
-	end
-end
-
----@private
----@param spec Unpack.Spec
----@param package_name string
+---@param plug_data vim.pack.PlugData
 ---@param config Unpack.Config
-local function clean_conflicts(spec, package_name, config)
-	if config.opts.is_win32 ~= 1 or type(spec.data) ~= "table" or type(spec.data.conflicts) ~= "table" then
+local function clean_conflicts(plug_data, config)
+	if
+		config.opts.is_win32 ~= 1
+		or type(plug_data.spec.data) ~= "table"
+		or type(plug_data.spec.data.conflicts) ~= "table"
+	then
 		return
 	end
 
-	local matches = vim.fn.glob(
-		config.opts.data_path .. config.opts.packages_rpath .. package_name .. "/**/*" .. config.opts.conflict_suffix,
-		false,
-		true
-	) ---@type string[]
-
+	local matches = vim.fn.glob(plug_data.path .. "/**/*" .. config.opts.conflict_suffix, false, true) ---@type string[]
 	for _, match in ipairs(matches) do
 		local ok, err = vim.uv.fs_unlink(match)
-
 		if not ok then
 			vim.schedule(function()
 				vim.notify(("Unlink failed: %s"):format(err), vim.log.levels.ERROR)
@@ -183,28 +120,37 @@ end
 
 local M = {} ---@class Unpack.Commands
 
----@param specs Unpack.Spec[]?
-M.build = function(specs)
-	local deferred_specs = {} ---@type Unpack.Spec[]
-
-	if not specs or #specs == 0 then
-		deferred_specs, specs, _ = get_specs_and_names()
+---@param data table
+M.build = function(data)
+	if
+		type(data.spec.data) ~= "table"
+		or type(data.spec.data.build) ~= "string"
+		or data.spec.data.build:is_empty_or_whitespace()
+	then
+		return
 	end
 
-	handle_builds(deferred_specs)
-	handle_builds(specs)
+	handle_conflicts(data)
+
+	vim.schedule(function()
+		local package_name = vim.fn.fnamemodify(data.spec.src, ":t")
+		vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
+		local response = vim.system(vim.split(data.spec.data.build, " "), { cwd = data.path }):wait()
+		vim.notify(
+			("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", package_name),
+			response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
+		)
+	end)
 end
 M.clean = function()
 	local config = require("config")
-	local names_set = select(3, get_specs_and_names())
 	local packages_to_delete = {} ---@type string[]
-	local package_names = get_package_names()
 
-	for _, package_name in ipairs(package_names) do
-		if names_set[package_name] == nil then
-			packages_to_delete[#packages_to_delete + 1] = package_name
+	for _, plug_data in ipairs(vim.pack.get(nil, { info = false })) do
+		if plug_data.spec.name ~= config.opts.unpack_package and not plug_data.active then
+			packages_to_delete[#packages_to_delete + 1] = plug_data.spec.name
 		else
-			clean_conflicts(names_set[package_name], package_name, config)
+			clean_conflicts(plug_data, config)
 		end
 	end
 
@@ -212,7 +158,7 @@ M.clean = function()
 end
 M.load = function()
 	local config = require("config")
-	local deferred_specs, eager_specs, _ = get_specs_and_names()
+	local deferred_specs, eager_specs = get_specs(config)
 
 	load_specs(eager_specs, config)
 	vim.schedule(function()
@@ -220,9 +166,7 @@ M.load = function()
 	end)
 end
 M.update = function()
-	local config = require("config")
-
-	vim.pack.update(nil, config.opts.update_options)
+	vim.pack.update(nil, require("config").opts.update_options)
 end
 
 return M

@@ -39,7 +39,7 @@ describe("unpack.setup", function()
 
 		package.loaded["extensions"] = true
 
-		_G.vim = require("test.fixtures").vim_unpack_fixtures
+		_G.vim = require("tests.fixtures").vim_unpack_fixtures
 
 		unpack = require("lua.unpack")
 	end)
@@ -71,18 +71,22 @@ describe("unpack.setup", function()
 			table.insert(names, c[1])
 		end
 
-		assert.True(vim.tbl_contains(names, "build"))
-		assert.True(vim.tbl_contains(names, "build"))
-		assert.False(vim.tbl_contains(names, "remove"))
+		local build_count = 0
+		for _, n in ipairs(names) do
+			if n == "build" then
+				build_count = build_count + 1
+			end
+		end
+		assert.equal(2, build_count)
+		assert.False(vim.tbl_contains(names, "clean"))
+		assert.False(vim.tbl_contains(names, "update"))
 	end)
 
 	it("registers user commands", function()
 		unpack.setup()
 		local uc = _G.__last_user_command
 
-		assert.is_function(uc.PackBuild.fn)
 		assert.is_function(uc.PackClean.fn)
-		assert.is_function(uc.PackLoad.fn)
 		assert.is_function(uc.PackUpdate.fn)
 	end)
 

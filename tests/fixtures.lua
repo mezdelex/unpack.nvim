@@ -26,7 +26,14 @@ M.vim_commands_fixtures = {
 		end,
 	},
 	notify = function() end,
-	pack = { del = function() end, add = function() end, update = function() end },
+	pack = {
+		del = function() end,
+		add = function() end,
+		update = function() end,
+		get = function()
+			return {}
+		end,
+	},
 	schedule = function(f)
 		f()
 	end,

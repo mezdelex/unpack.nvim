@@ -1,7 +1,7 @@
 ---@diagnostic disable: duplicate-set-field
 local assert = require("luassert")
 
-_G.vim = require("test.fixtures").vim_config_fixtures
+_G.vim = require("tests.fixtures").vim_config_fixtures
 
 describe("config", function()
 	local config
@@ -13,9 +13,8 @@ describe("config", function()
 		config.opts = {
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
-			data_path = "/tmp/data",
+			conflict_suffix = ".conflict",
 			is_win32 = vim.fn.has("win32"),
-			packages_rpath = "/site/pack/core/opt/",
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
 			update_options = { force = true },
@@ -26,9 +25,8 @@ describe("config", function()
 		assert.same({
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
-			data_path = "/tmp/data",
+			conflict_suffix = ".conflict",
 			is_win32 = vim.fn.has("win32"),
-			packages_rpath = "/site/pack/core/opt/",
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
 			update_options = { force = true },

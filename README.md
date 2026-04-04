@@ -117,12 +117,8 @@ vim.api.nvim_create_augroup(group, { clear = true })
 
 vim.api.nvim_create_autocmd("PackChanged", {
     callback = function(args)
-        local kind = args.data.kind ---@type string
-
-        if kind == "install" or kind == "update" then
-            local spec = args.data.spec ---@type Unpack.Spec
-
-            commands.build({ spec })
+        if args.data.kind == "install" or args.data.kind == "update" then
+            commands.build(args.data)
         end
     end,
     group = group,
@@ -177,22 +173,18 @@ Whatever makes more sense to you.
 
 The commands provided are:
 
-| Command      | Description                                                                                                                             |
-| :----------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| `PackBuild`  | Iterates over all the plugin specs and runs all the build hooks. _(Triggered automatically on `PackChanged` event per changed package)_ |
-| `PackClean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec and cleans stale conflicts if any.            |
-| `PackLoad`   | Loads all the plugins in your `plugins` directory. _(Runs on `VimEnter`; exposed for build timeouts)_                                   |
-| `PackUpdate` | Updates all the plugins present in your packages directory.                                                                             |
+| Command      | Description                                                                                                                  |
+| :----------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| `PackClean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec and cleans stale conflicts if any. |
+| `PackUpdate` | Updates all the plugins present in your packages directory.                                                                  |
 
 You can also use them this way if you prefer:
 
 ```lua
-    local commands = require("unpack.commands")
+local unpack = require("unpack")
 
-    vim.keymap.set("n", "<your-keymap>", commands.build)
-    vim.keymap.set("n", "<your-keymap>", commands.clean)
-    vim.keymap.set("n", "<your-keymap>", commands.load)
-    vim.keymap.set("n", "<your-keymap>", commands.update)
+vim.keymap.set("n", "<your-keymap>", unpack.clean)
+vim.keymap.set("n", "<your-keymap>", unpack.update)
 ```
 
 ## Roadmap

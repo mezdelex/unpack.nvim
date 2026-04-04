@@ -2,7 +2,7 @@
 local assert = require("luassert")
 local commands = require("lua.commands")
 
-_G.vim = require("test.fixtures").vim_commands_fixtures
+_G.vim = require("tests.fixtures").vim_commands_fixtures
 _G.string.is_empty_or_whitespace = function(s)
 	return not not s:match("^%s*$")
 end
@@ -12,9 +12,7 @@ package.loaded["config"] = {
 		add_options = {},
 		config_path = "/tmp/config/",
 		conflict_suffix = ".conflict",
-		data_path = "/tmp/data/",
 		is_win32 = vim.fn.has("win32"),
-		packages_rpath = "packages/",
 		plugins_rpath = "plugins/",
 		unpack_package = "unpack.nvim",
 		update_options = {},
@@ -35,13 +33,19 @@ describe("commands", function()
 	end)
 
 	describe("build", function()
-		it("runs build command for eager specs", function()
+		it("runs build command for spec with build", function()
 			local msgs = {}
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
 			end
 			vim.notify = function(msg, level)
 				msgs[#msgs + 1] = { msg, level }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
 			end
 			vim.system = function(cmd, opts)
 				assert.same({ "make", "install" }, cmd)
@@ -53,7 +57,10 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ { src = "test", data = { build = "make install" } } })
+			commands.build({
+				spec = { src = "test", data = { build = "make install" } },
+				path = "/tmp/data/packages/test",
+			})
 
 			assert.same("Building test...", msgs[1][1])
 			assert.same(vim.log.levels.WARN, msgs[1][2])
@@ -67,73 +74,21 @@ describe("commands", function()
 				called = true
 			end
 
-			commands.build({ { src = "test" } })
+			commands.build({ spec = { src = "test" }, path = "/tmp/data/packages/test" })
 
 			assert.False(called)
-		end)
-
-		it("builds both deferred and eager specs when no specs provided", function()
-			local msgs = {}
-			local build_calls = {}
-			package.loaded["plugins.test"] = {
-				src = "test",
-				data = { build = "make install" },
-			}
-			package.loaded["plugins.deferred"] = {
-				src = "deferred",
-				defer = true,
-				data = { build = "make build" },
-			}
-			vim.fn.glob = function(path)
-				if path:match("plugins/") then
-					return { "/tmp/config/plugins/test.lua", "/tmp/config/plugins/deferred.lua" }
-				end
-				return {}
-			end
-			vim.fn.fnamemodify = function(fpath, mod)
-				if mod == ":t:r" then
-					return fpath:match("([^/]+)%.lua$")
-				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
-				end
-				return fpath
-			end
-			vim.uv.fs_stat = function()
-				return { type = "directory" }
-			end
-			vim.notify = function(msg, level)
-				msgs[#msgs + 1] = { msg, level }
-			end
-			vim.system = function(cmd, opts)
-				build_calls[#build_calls + 1] = cmd
-				return {
-					wait = function()
-						return { code = 0, stdout = "ok", stderr = "" }
-					end,
-				}
-			end
-
-			commands.build()
-
-			assert.same(2, #build_calls)
-			local found_install, found_build = false, false
-			for _, cmd in ipairs(build_calls) do
-				if cmd[1] == "make" and cmd[2] == "install" then
-					found_install = true
-				end
-				if cmd[1] == "make" and cmd[2] == "build" then
-					found_build = true
-				end
-			end
-			assert.True(found_install)
-			assert.True(found_build)
 		end)
 
 		it("notifies error on failure", function()
 			local msgs = {}
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
 			end
 			vim.notify = function(msg, level)
 				msgs[#msgs + 1] = { msg, level }
@@ -146,7 +101,7 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ { src = "test", data = { build = "x" } } })
+			commands.build({ spec = { src = "test", data = { build = "x" } }, path = "/tmp/data/packages/test" })
 
 			assert.same("Building test...", msgs[1][1])
 			assert.same(vim.log.levels.WARN, msgs[1][2])
@@ -156,11 +111,15 @@ describe("commands", function()
 
 		it("renames conflicts on Windows", function()
 			local msgs = {}
-			vim.fn.has = function(feature)
-				return feature == "win32" and 1 or 0
-			end
+			package.loaded["config"].opts.is_win32 = 1
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
 			end
 			vim.notify = function(msg, level)
 				msgs[#msgs + 1] = { msg, level }
@@ -186,7 +145,10 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			commands.build({
+				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				path = "/tmp/data/packages/test",
+			})
 
 			assert.same("Building test...", msgs[1][1])
 			assert.same(vim.log.levels.WARN, msgs[1][2])
@@ -199,6 +161,12 @@ describe("commands", function()
 			package.loaded["config"].opts.is_win32 = 0
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
 			end
 			vim.fn.glob = function()
 				glob_called = true
@@ -214,7 +182,10 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			commands.build({
+				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				path = "/tmp/data/packages/test",
+			})
 
 			assert.False(glob_called)
 		end)
@@ -224,6 +195,12 @@ describe("commands", function()
 			package.loaded["config"].opts.is_win32 = 1
 			vim.uv.fs_stat = function()
 				return { type = "directory" }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
 			end
 			vim.notify = function(msg, level)
 				msgs[#msgs + 1] = { msg, level }
@@ -247,7 +224,10 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } } })
+			commands.build({
+				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				path = "/tmp/data/packages/test",
+			})
 
 			assert.same("Rename failed: permission denied", msgs[1][1])
 			assert.same(vim.log.levels.ERROR, msgs[1][2])
@@ -255,20 +235,6 @@ describe("commands", function()
 			assert.same(vim.log.levels.WARN, msgs[2][2])
 			assert.same("Build successful for test", msgs[3][1])
 			assert.same(vim.log.levels.INFO, msgs[3][2])
-		end)
-
-		it("handles build when package directory doesn't exist", function()
-			local called = false
-			vim.uv.fs_stat = function()
-				return nil
-			end
-			vim.system = function()
-				called = true
-			end
-
-			commands.build({ { src = "test", data = { build = "make" } } })
-
-			assert.False(called)
 		end)
 
 		it("skips when spec.data.build is empty", function()
@@ -280,7 +246,7 @@ describe("commands", function()
 				called = true
 			end
 
-			commands.build({ { src = "test", data = { build = "   " } } })
+			commands.build({ spec = { src = "test", data = { build = "   " } }, path = "/tmp/data/packages/test" })
 
 			assert.False(called)
 		end)
@@ -291,18 +257,7 @@ describe("commands", function()
 				called = true
 			end
 
-			commands.build({ { src = "test", data = "not a table" } })
-
-			assert.False(called)
-		end)
-
-		it("skips when spec.src is not a string", function()
-			local called = false
-			vim.system = function()
-				called = true
-			end
-
-			commands.build({ { src = 123, data = { build = "make" } } })
+			commands.build({ spec = { src = "test", data = "not a table" }, path = "/tmp/data/packages/test" })
 
 			assert.False(called)
 		end)
@@ -313,32 +268,99 @@ describe("commands", function()
 				called = true
 			end
 
-			commands.build({ { src = "test", data = { build = 123 } } })
+			commands.build({ spec = { src = "test", data = { build = 123 } }, path = "/tmp/data/packages/test" })
 
 			assert.False(called)
+		end)
+
+		it("skips when data.spec.data is nil", function()
+			local called = false
+			vim.system = function()
+				called = true
+			end
+
+			commands.build({ spec = { src = "test" }, path = "/tmp/data/packages/test" })
+
+			assert.False(called)
+		end)
+
+		it("skips non-string conflict entries", function()
+			local glob_called = false
+			package.loaded["config"].opts.is_win32 = 1
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
+			end
+			vim.fn.glob = function()
+				glob_called = true
+				return {}
+			end
+			vim.system = function(cmd, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+
+			commands.build({
+				spec = { src = "test", data = { build = "make", conflicts = { 123, nil } } },
+				path = "/tmp/data/packages/test",
+			})
+
+			assert.False(glob_called)
+		end)
+
+		it("renames multiple files from multiple conflict patterns", function()
+			local rename_calls = {}
+			package.loaded["config"].opts.is_win32 = 1
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t" then
+					return "test"
+				end
+				return fpath
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/a.dll" then
+					return { "/tmp/data/packages/test/a.dll" }
+				end
+				if path == "/tmp/data/packages/test/**/b.dll" then
+					return { "/tmp/data/packages/test/b.dll" }
+				end
+				return {}
+			end
+			vim.uv.fs_rename = function(src, dst)
+				table.insert(rename_calls, { src = src, dst = dst })
+				return true, nil
+			end
+			vim.system = function(cmd, opts)
+				return {
+					wait = function()
+						return { code = 0, stdout = "ok", stderr = "" }
+					end,
+				}
+			end
+
+			commands.build({
+				spec = { src = "test", data = { build = "make", conflicts = { "a.dll", "b.dll" } } },
+				path = "/tmp/data/packages/test",
+			})
+
+			assert.same(2, #rename_calls)
 		end)
 	end)
 
 	describe("clean", function()
 		it("removes packages not in specs", function()
-			package.loaded["plugins.a"] = { src = "/tmp/data/packages/a" }
-			vim.fn.glob = function(p)
-				if p:match("plugins/") then
-					return { "/tmp/config/plugins/a.lua" }
-				else
-					return { "/tmp/data/packages/a/", "/tmp/data/packages/b/" }
-				end
-			end
-			vim.fn.fnamemodify = function(fpath, mod)
-				if mod == ":t:r" then
-					return fpath:match("([^/]+)%.lua$")
-				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
-				end
-				return fpath
-			end
 			local deleted
+			vim.pack.get = function()
+				return {
+					{ spec = { name = "a" }, path = "/tmp/data/packages/a", active = true },
+					{ spec = { name = "b" }, path = "/tmp/data/packages/b", active = false },
+				}
+			end
 			vim.pack.del = function(pkgs)
 				deleted = pkgs
 			end
@@ -351,30 +373,22 @@ describe("commands", function()
 		it("cleans conflict files on Windows", function()
 			local unlink_calls = {}
 			package.loaded["config"].opts.is_win32 = 1
-			package.loaded["plugins.test"] = {
-				src = "/tmp/data/packages/test",
-				data = { conflicts = { "a.dll" } },
-			}
+			vim.pack.get = function()
+				return {
+					{
+						spec = { name = "test", data = { conflicts = { "a.dll" } } },
+						path = "/tmp/data/packages/test",
+						active = true,
+					},
+				}
+			end
 			vim.fn.glob = function(path)
 				if path == "/tmp/data/packages/test/**/*.conflict" then
 					return {
 						"/tmp/data/packages/test/a.dll.conflict",
 					}
 				end
-				if path:match("plugins/") then
-					return { "/tmp/config/plugins/test.lua" }
-				else
-					return { "/tmp/data/packages/test/" }
-				end
-			end
-			vim.fn.fnamemodify = function(path, mod)
-				if mod == ":t:r" then
-					return "test"
-				end
-				if mod == ":t" then
-					return "test"
-				end
-				return path
+				return {}
 			end
 			vim.uv.fs_unlink = function(file)
 				table.insert(unlink_calls, file)
@@ -391,28 +405,20 @@ describe("commands", function()
 		it("handles unlink failure gracefully", function()
 			local msgs = {}
 			package.loaded["config"].opts.is_win32 = 1
-			package.loaded["plugins.test"] = {
-				src = "/tmp/data/packages/test",
-				data = { conflicts = { "a.dll" } },
-			}
+			vim.pack.get = function()
+				return {
+					{
+						spec = { name = "test", data = { conflicts = { "a.dll" } } },
+						path = "/tmp/data/packages/test",
+						active = true,
+					},
+				}
+			end
 			vim.fn.glob = function(path)
 				if path == "/tmp/data/packages/test/**/*.conflict" then
 					return { "/tmp/data/packages/test/a.dll.conflict" }
 				end
-				if path:match("plugins/") then
-					return { "/tmp/config/plugins/test.lua" }
-				else
-					return { "/tmp/data/packages/test/" }
-				end
-			end
-			vim.fn.fnamemodify = function(path, mod)
-				if mod == ":t:r" then
-					return "test"
-				end
-				if mod == ":t" then
-					return "test"
-				end
-				return path
+				return {}
 			end
 			vim.uv.fs_unlink = function(_)
 				return false, "permission denied"
@@ -429,8 +435,15 @@ describe("commands", function()
 
 		it("skips conflict cleaning on non-Windows", function()
 			local glob_called = false
-			vim.fn.has = function(feature)
-				return feature == "win32" and 0 or 1
+			package.loaded["config"].opts.is_win32 = 0
+			vim.pack.get = function()
+				return {
+					{
+						spec = { name = "test", data = { conflicts = { "a.dll" } } },
+						path = "/tmp/data/packages/test",
+						active = true,
+					},
+				}
 			end
 			vim.fn.glob = function(path)
 				if path:match("**/*.conflict$") then
@@ -446,39 +459,92 @@ describe("commands", function()
 
 		it("only cleans conflicts for packages with conflicts config", function()
 			local glob_called = false
-			package.loaded["plugins.a"] = { src = "/tmp/data/packages/a" }
-			vim.fn.has = function(feature)
-				return feature == "win32" and 1 or 0
+			package.loaded["config"].opts.is_win32 = 1
+			vim.pack.get = function()
+				return {
+					{ spec = { name = "a" }, path = "/tmp/data/packages/a", active = true },
+				}
 			end
 			vim.fn.glob = function(path)
 				if path == "/tmp/data/packages/a/**/*.conflict" then
 					glob_called = true
 					return { "/tmp/data/packages/a/test.dll.conflict" }
 				end
-				if path:match("plugins/") then
-					return { "/tmp/config/plugins/a.lua" }
-				else
-					return { "/tmp/data/packages/a/" }
-				end
+				return {}
 			end
-			vim.fn.fnamemodify = function(path, mod)
-				if mod == ":t:r" then
-					return "a"
-				end
-				if mod == ":t" then
-					return "a"
-				end
-				return path
-			end
-			vim.uv.fs_unlink = function(_)
-				return true, nil
-			end
+			vim.pack.del = function() end
 
 			commands.clean()
 
 			assert.False(glob_called)
 		end)
 
+		it("filters out unpack_package from package list", function()
+			local deleted
+			vim.pack.get = function()
+				return {
+					{ spec = { name = "a" }, path = "/tmp/data/packages/a", active = true },
+					{ spec = { name = "b" }, path = "/tmp/data/packages/b", active = false },
+					{ spec = { name = "unpack.nvim" }, path = "/tmp/data/packages/unpack.nvim", active = false },
+				}
+			end
+			vim.pack.del = function(pkgs)
+				deleted = pkgs
+			end
+
+			commands.clean()
+
+			assert.same({ "b" }, deleted)
+		end)
+
+		it("cleans multiple conflict files", function()
+			local unlink_calls = {}
+			package.loaded["config"].opts.is_win32 = 1
+			vim.pack.get = function()
+				return {
+					{
+						spec = { name = "test", data = { conflicts = { "*.dll" } } },
+						path = "/tmp/data/packages/test",
+						active = true,
+					},
+				}
+			end
+			vim.fn.glob = function(path)
+				if path == "/tmp/data/packages/test/**/*.conflict" then
+					return {
+						"/tmp/data/packages/test/a.dll.conflict",
+						"/tmp/data/packages/test/b.dll.conflict",
+					}
+				end
+				return {}
+			end
+			vim.uv.fs_unlink = function(file)
+				table.insert(unlink_calls, file)
+				return true, nil
+			end
+			vim.pack.del = function() end
+
+			commands.clean()
+
+			assert.same(2, #unlink_calls)
+		end)
+
+		it("handles spec without data field", function()
+			package.loaded["config"].opts.is_win32 = 1
+			vim.pack.get = function()
+				return {
+					{ spec = { name = "test" }, path = "/tmp/data/packages/test", active = true },
+				}
+			end
+			vim.pack.del = function() end
+
+			commands.clean()
+
+			assert.True(true)
+		end)
+	end)
+
+	describe("load", function()
 		it("notifies when plugin spec fails to load", function()
 			local msgs = {}
 			package.loaded["plugins.bad"] = nil
@@ -565,7 +631,6 @@ describe("commands", function()
 			local msgs = {}
 			package.loaded["plugins.no-src"] = {
 				name = "no-src",
-				-- missing src
 			}
 			vim.fn.glob = function()
 				return { "/tmp/config/plugins/no-src.lua" }
@@ -637,36 +702,6 @@ describe("commands", function()
 			assert.equals(2, #add_calls)
 		end)
 
-		it("filters out unpack_package from package list", function()
-			local deleted
-			package.loaded["plugins.a"] = { src = "/tmp/data/packages/a" }
-			vim.fn.glob = function(p)
-				if p:match("plugins/") then
-					return { "/tmp/config/plugins/a.lua" }
-				else
-					return { "/tmp/data/packages/a/", "/tmp/data/packages/b/", "/tmp/data/packages/unpack.nvim/" }
-				end
-			end
-			vim.fn.fnamemodify = function(fpath, mod)
-				if mod == ":t:r" then
-					return fpath:match("([^/]+)%.lua$")
-				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
-				end
-				return fpath
-			end
-			vim.pack.del = function(pkgs)
-				deleted = pkgs
-			end
-
-			commands.clean()
-
-			assert.same({ "b" }, deleted)
-		end)
-	end)
-
-	describe("load", function()
 		it("adds and configures eager specs immediately", function()
 			local cfg = false
 			package.loaded["plugins.a"] = {
@@ -778,6 +813,49 @@ describe("commands", function()
 			scheduled_func()
 			assert.True(deferred_ran)
 			assert.equals(2, #add_calls)
+		end)
+
+		it("handles empty plugin directory", function()
+			vim.fn.glob = function()
+				return {}
+			end
+			local add_calls = {}
+			vim.pack.add = function(specs, options)
+				add_calls[#add_calls + 1] = specs
+			end
+
+			commands.load()
+
+			assert.equals(2, #add_calls)
+			assert.same({}, add_calls[1])
+			assert.same({}, add_calls[2])
+		end)
+
+		it("handles dependency without config", function()
+			local add_calls = {}
+			package.loaded["plugins.parent"] = {
+				src = "parent",
+				dependencies = {
+					{ src = "dep" },
+				},
+			}
+			vim.fn.glob = function()
+				return { "/tmp/config/plugins/parent.lua" }
+			end
+			vim.fn.fnamemodify = function(fpath, mod)
+				if mod == ":t:r" then
+					return "parent"
+				end
+				return fpath
+			end
+			vim.pack.add = function(specs, options)
+				add_calls[#add_calls + 1] = specs
+			end
+
+			commands.load()
+
+			assert.equals(2, #add_calls)
+			assert.equals(2, #add_calls[1])
 		end)
 	end)
 

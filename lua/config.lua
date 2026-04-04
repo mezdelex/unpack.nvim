@@ -8,9 +8,7 @@ M.opts = { ---@class Unpack.Config.Opts
 	add_options = { confirm = false }, ---@type vim.pack.keyset.add
 	config_path = vim.fn.stdpath("config"),
 	conflict_suffix = ".conflict",
-	data_path = vim.fn.stdpath("data"),
 	is_win32 = vim.fn.has("win32"),
-	packages_rpath = "/site/pack/core/opt/",
 	plugins_rpath = "/lua/plugins/",
 	unpack_package = "unpack.nvim",
 	update_options = { force = true }, ---@type vim.pack.keyset.update
