@@ -133,11 +133,10 @@ M.build = function(data)
 	handle_conflicts(data)
 
 	vim.schedule(function()
-		local package_name = vim.fn.fnamemodify(data.spec.src, ":t")
-		vim.notify(("Building %s..."):format(package_name), vim.log.levels.WARN)
+		vim.notify(("Building %s..."):format(data.spec.name), vim.log.levels.WARN)
 		local response = vim.system(vim.split(data.spec.data.build, " "), { cwd = data.path }):wait()
 		vim.notify(
-			("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", package_name),
+			("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", data.spec.name),
 			response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
 		)
 	end)
