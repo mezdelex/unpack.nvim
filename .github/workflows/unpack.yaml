@@ -1,4 +1,4 @@
-name: UnPack CI
+name: unpack CI
 
 on:
   pull_request:
