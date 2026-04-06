@@ -8,9 +8,9 @@ local M = {} ---@class Unpack
 ---@param opts Unpack.Config.UserOpts?
 function M.setup(opts)
 	local commands = require("commands")
-	local group = "Unpack"
+	local config = require("config")
 
-	require("config").setup(opts)
+	config.setup(opts)
 	require("extensions")
 
 	M.clean = commands.clean
@@ -19,7 +19,7 @@ function M.setup(opts)
 	vim.api.nvim_create_user_command("PackClean", commands.clean, {})
 	vim.api.nvim_create_user_command("PackUpdate", commands.update, {})
 
-	vim.api.nvim_create_augroup(group, { clear = true })
+	vim.api.nvim_create_augroup(config.opts.group, { clear = true })
 
 	vim.api.nvim_create_autocmd("PackChanged", {
 		callback = function(args)
@@ -27,10 +27,10 @@ function M.setup(opts)
 				commands.build(args.data)
 			end
 		end,
-		group = group,
+		group = config.opts.group,
 	})
 
-	commands.load()
+	commands.load(config)
 
 	vim.g.unpack_loaded = true
 end

@@ -155,8 +155,8 @@ M.clean = function()
 
 	vim.pack.del(packages_to_delete)
 end
-M.load = function()
-	local config = require("config")
+---@param config Unpack.Config
+M.load = function(config)
 	local deferred_specs, eager_specs = get_specs(config)
 
 	load_specs(eager_specs, config)

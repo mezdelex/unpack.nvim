@@ -58,7 +58,11 @@ describe("commands", function()
 			end
 
 			commands.build({
-				spec = { src = "test", data = { build = "make install" } },
+				spec = {
+					src = "test",
+					name = "test",
+					data = { build = "make install", conflicts = { "conflict.dll" } },
+				},
 				path = "/tmp/data/packages/test",
 			})
 
@@ -101,7 +105,10 @@ describe("commands", function()
 				}
 			end
 
-			commands.build({ spec = { src = "test", data = { build = "x" } }, path = "/tmp/data/packages/test" })
+			commands.build({
+				spec = { src = "test", name = "test", data = { build = "x" } },
+				path = "/tmp/data/packages/test",
+			})
 
 			assert.same("Building test...", msgs[1][1])
 			assert.same(vim.log.levels.WARN, msgs[1][2])
@@ -146,7 +153,11 @@ describe("commands", function()
 			end
 
 			commands.build({
-				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				spec = {
+					src = "test",
+					name = "test",
+					data = { build = "make install", conflicts = { "conflict.dll" } },
+				},
 				path = "/tmp/data/packages/test",
 			})
 
@@ -183,7 +194,11 @@ describe("commands", function()
 			end
 
 			commands.build({
-				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				spec = {
+					src = "test",
+					name = "test",
+					data = { build = "make install", conflicts = { "conflict.dll" } },
+				},
 				path = "/tmp/data/packages/test",
 			})
 
@@ -225,7 +240,11 @@ describe("commands", function()
 			end
 
 			commands.build({
-				spec = { src = "test", data = { build = "make install", conflicts = { "conflict.dll" } } },
+				spec = {
+					src = "test",
+					name = "test",
+					data = { build = "make install", conflicts = { "conflict.dll" } },
+				},
 				path = "/tmp/data/packages/test",
 			})
 
@@ -568,7 +587,7 @@ describe("commands", function()
 				return original_require(mod)
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			require = original_require
 			assert.equals(1, #msgs)
@@ -592,7 +611,7 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(1, #msgs)
 			assert.same("Invalid spec for invalid, not a table", msgs[1][1])
@@ -620,7 +639,7 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(1, #msgs)
 			assert.same("Invalid spec for parent, missing src", msgs[1][1])
@@ -645,7 +664,7 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(1, #msgs)
 			assert.same("Invalid spec for no-src, missing src", msgs[1][1])
@@ -693,7 +712,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = specs
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.is_true(vim.tbl_contains(configs_run, "dep-eager"))
 			assert.is_false(vim.tbl_contains(configs_run, "dep-deferred"))
@@ -721,7 +740,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = { specs = specs, opts = options }
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(2, #add_calls)
 			assert.equals(1, #add_calls[1].specs)
@@ -755,7 +774,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = { specs = specs, opts = options }
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.is_function(scheduled_func)
 			assert.equals(1, #add_calls)
@@ -805,7 +824,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = specs
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.True(eager_ran)
 			assert.False(deferred_ran)
@@ -824,7 +843,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = specs
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(2, #add_calls)
 			assert.same({}, add_calls[1])
@@ -852,7 +871,7 @@ describe("commands", function()
 				add_calls[#add_calls + 1] = specs
 			end
 
-			commands.load()
+			commands.load(package.loaded["config"])
 
 			assert.equals(2, #add_calls)
 			assert.equals(2, #add_calls[1])

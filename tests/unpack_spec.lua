@@ -32,6 +32,9 @@ describe("unpack.setup", function()
 			setup = function(opts)
 				config_setup_called = opts or true
 			end,
+			opts = {
+				group = "Unpack",
+			},
 			__called = function()
 				return config_setup_called
 			end,
