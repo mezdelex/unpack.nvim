@@ -1,4 +1,5 @@
-*unpack.nvim.txt*          For NVIM v0.8.0          Last change: 2026 April 07
+*unpack.nvim.txt*
+                                 For NVIM v0.8.0    Last change: 2026 April 17
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
