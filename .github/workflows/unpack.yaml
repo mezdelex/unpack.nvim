@@ -6,19 +6,24 @@ on:
   push:
     branches: [dev, main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PANVIMDOC_COMMIT_MSG: "docs(panvimdoc): automated doc generation"
 
 jobs:
   style:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
+    if: github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
     name: Run stylua check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install Stylua
+      - name: Install stylua
         uses: JohnnyMorganz/stylua-action@v5
         with:
           args: --check .
@@ -26,26 +31,21 @@ jobs:
           version: latest
 
   tests:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
+    if: github.actor != 'github-actions[bot]' &&
+      !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
     name: Run tests with busted
-    needs: style
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Setup Neovim
-        run: |
-          sudo apt-get update
-          sudo add-apt-repository ppa:neovim-ppa/unstable -y
-          sudo apt-get update
-          sudo apt-get install -y neovim
-
-      - name: Install luarocks
-        run: sudo apt-get install -y luarocks
+      - name: Setup neovim
+        uses: MunifTanjim/setup-neovim-action@v1
 
       - name: Install busted
-        run: luarocks install busted --local
+        run: |
+          sudo apt-get install -y luarocks
+          luarocks install busted --local
 
       - name: Run tests
         run: |
@@ -54,9 +54,12 @@ jobs:
           nvim --headless -c "!busted --verbose ." -c "qa!"
 
   docs:
-    if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'env.PANVIMDOC_COMMIT_MSG')
+    if:
+      github.event_name == 'push' && github.ref_name == 'main' && github.actor !=
+      'github-actions[bot]' && !contains(github.event.head_commit.message,
+      'env.PANVIMDOC_COMMIT_MSG')
     name: Generate docs with panvimdoc
-    needs: tests
+    needs: [style, tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
