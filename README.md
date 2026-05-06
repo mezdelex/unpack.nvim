@@ -1,6 +1,6 @@
 <br clear="all" />
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b23b4325-abde-463a-a1d1-8d42f4dabd25" width="200" height="200" alt="Image" />
+  <img src="https://github.com/user-attachments/assets/b23b4325-abde-463a-a1d1-8d42f4dabd25" width="300" height="200" alt="Image" />
   <br>
   <b>unpack is a minimal layer on top of vim.pack</b>
 </p>
