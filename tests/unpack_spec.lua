@@ -85,12 +85,63 @@ describe("unpack.setup", function()
 		assert.False(vim.tbl_contains(names, "update"))
 	end)
 
-	it("registers user commands", function()
+	it("registers Unpack user command", function()
 		unpack.setup()
 		local uc = _G.__last_user_command
 
-		assert.is_function(uc.PackClean.fn)
-		assert.is_function(uc.PackUpdate.fn)
+		assert.is_function(uc.Unpack.fn)
+		assert.equals("*", uc.Unpack.opts.nargs)
+		assert.is_function(uc.Unpack.opts.complete)
+		assert.same({ "clean", "update" }, uc.Unpack.opts.complete())
+	end)
+
+	it("Unpack command calls clean subcommand", function()
+		local commands = package.loaded["commands"]
+		unpack.setup()
+		local uc = _G.__last_user_command
+
+		uc.Unpack.fn({ fargs = { "clean" } })
+
+		local found = false
+		for _, c in ipairs(commands.__calls) do
+			if c[1] == "clean" then
+				found = true
+				break
+			end
+		end
+		assert.True(found)
+	end)
+
+	it("Unpack command calls update subcommand", function()
+		local commands = package.loaded["commands"]
+		unpack.setup()
+		local uc = _G.__last_user_command
+
+		uc.Unpack.fn({ fargs = { "update" } })
+
+		local found = false
+		for _, c in ipairs(commands.__calls) do
+			if c[1] == "update" then
+				found = true
+				break
+			end
+		end
+		assert.True(found)
+	end)
+
+	it("Unpack command shows usage for unknown subcommand", function()
+		local msgs = {}
+		vim.notify = function(msg, level)
+			msgs[#msgs + 1] = { msg = msg, level = level }
+		end
+		vim.log = vim.log or { levels = { WARN = 2 } }
+		unpack.setup()
+		local uc = _G.__last_user_command
+
+		uc.Unpack.fn({ fargs = { "unknown" } })
+
+		assert.same("Usage: Unpack [clean|update]", msgs[1].msg)
+		assert.same(vim.log.levels.WARN, msgs[1].level)
 	end)
 
 	it("invokes commands.load immediately", function()
