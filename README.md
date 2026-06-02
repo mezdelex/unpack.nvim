@@ -35,8 +35,8 @@ See `:h vim.pack.add` and `:h vim.pack.update` opts.
 > Make sure you set `vim.g.mapleader` beforehand.
 
 ```lua
+-- example optional setup call
 require("unpack").setup({
-    -- example optional setup call
     add_options = { confirm = true }, -- default false
     update_options = { force = false }, -- default true
 })
@@ -65,20 +65,6 @@ return {
 		...
 	end,
 	data = { build = "your build --command" },
-	defer = true,
-	src = "https://github.com/<vendor>/plugin1",
-}
-```
-
-```lua
-return {
-	config = function()
-		...
-	end,
-	data = {
-        build = "your build --command",
-        conflicts = { "conflicting_file_name1.dll", "conflicting_file_name2.dll" }
-    },
 	defer = true,
 	src = "https://github.com/<vendor>/plugin1",
 }
@@ -124,34 +110,6 @@ vim.api.nvim_create_autocmd("PackChanged", {
 })
 ```
 
-### Conflicts
-
-Under WinOS, there are some permission problems related to the write rights on locked files and this affects the build hook when updating some plugins like `blink.cmp`.
-To address this, together with the `build` hook, `unpack` expects you to use `conflicts` hook inside the `data` table. This is like this because the `build` hook
-will eventually be handled by the plugin itself with the incoming `spec` changes as we stated before, so it makes sense to keep them together.
-
-Until then, this is the workaround for WinOS users:
-
-```lua
-return {
-    config = function()
-        -- example configuration
-        require("blink.cmp").setup({
-            completion = {
-                documentation = { auto_show = true },
-            },
-            keymap = { preset = "enter" },
-        })
-    end,
-    data = {
-        build = "cargo build --release",
-        conflicts = { "blink_cmp_fuzzy.dll" },
-    },
-    defer = true,
-    src = "https://github.com/saghen/blink.cmp",
-}
-```
-
 ### Defer
 
 Every spec marked with `defer = true` is going to be deferred using `vim.schedule` to avoid UI render delay. Dependencies follow the same rules.
@@ -159,7 +117,7 @@ Every spec marked with `defer = true` is going to be deferred using `vim.schedul
 ### Dependencies
 
 The dependencies handling logic is pretty simple: the plugins are going to be loaded following the `plugins` directory name order, so make sure to add the dependencies properly.
-For example, if any of your plugins relies on `plenary` as a dependency, add it in the first plugin that requires it following your `plugins` directory name order, and that's pretty much it.
+For example, if any of your plugins relies on given dependency, add it in the first plugin that requires it following your `plugins` directory name order, and that's pretty much it.
 Note that unpack treats every `spec` separately, so you could still include the dependencies in order, defer a specific plugin and still eagerly load its dependencies so they would be available for the following eagerly loaded ones that might require those dependencies.
 Whatever makes more sense to you.
 
@@ -172,10 +130,10 @@ Whatever makes more sense to you.
 
 The commands provided are:
 
-| Command          | Description                                                                                                                  |
-| :--------------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `:Unpack clean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec and cleans stale conflicts if any. |
-| `:Unpack update` | Updates all the plugins present in your packages directory.                                                                  |
+| Command          | Description                                                                                |
+| :--------------- | :----------------------------------------------------------------------------------------- |
+| `:Unpack clean`  | Removes any plugin present in your packages directory that doesn't exist as a plugin spec. |
+| `:Unpack update` | Updates all the plugins present in your packages directory.                                |
 
 You can also use them this way if you prefer:
 

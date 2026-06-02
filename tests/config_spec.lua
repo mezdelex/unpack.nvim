@@ -13,9 +13,7 @@ describe("config", function()
 		config.opts = {
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
-			conflict_suffix = ".conflict",
 			group = "Unpack",
-			is_win32 = vim.fn.has("win32"),
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
 			update_options = { force = true },
@@ -26,9 +24,7 @@ describe("config", function()
 		assert.same({
 			add_options = { confirm = false },
 			config_path = "/tmp/config",
-			conflict_suffix = ".conflict",
 			group = "Unpack",
-			is_win32 = vim.fn.has("win32"),
 			plugins_rpath = "/lua/plugins/",
 			unpack_package = "unpack.nvim",
 			update_options = { force = true },

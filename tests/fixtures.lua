@@ -14,17 +14,8 @@ M.vim_commands_fixtures = {
 		glob = function()
 			return {}
 		end,
-		has = function(_)
-			return 1
-		end,
-		jobstart = function() end,
 	},
 	log = { levels = { INFO = 1, WARN = 2, ERROR = 3 } },
-	loop = {
-		now = function()
-			return 1
-		end,
-	},
 	notify = function() end,
 	pack = {
 		del = function() end,
@@ -37,22 +28,12 @@ M.vim_commands_fixtures = {
 	schedule = function(f)
 		f()
 	end,
-	split = function(s)
-		local t = {}
-		for w in s:gmatch("%S+") do
-			t[#t + 1] = w
-		end
-		return t
-	end,
 	system = function()
 		return {
 			wait = function()
 				return { code = 0, stdout = "" }
 			end,
 		}
-	end,
-	trim = function(s)
-		return (s:gsub("^%s*(.-)%s*$", "%1"))
 	end,
 	tbl_contains = function(tbl, val)
 		for _, v in ipairs(tbl) do
@@ -62,17 +43,6 @@ M.vim_commands_fixtures = {
 		end
 		return false
 	end,
-	uv = {
-		fs_rename = function(_, _)
-			return nil, nil
-		end,
-		fs_stat = function()
-			return nil
-		end,
-		fs_unlink = function(_)
-			return nil, nil
-		end,
-	},
 }
 M.vim_config_fixtures = {
 	deepcopy = function(v)
@@ -86,9 +56,6 @@ M.vim_config_fixtures = {
 		return t
 	end,
 	fn = {
-		has = function(_)
-			return 0
-		end,
 		stdpath = function(kind)
 			return "/tmp/" .. kind
 		end,
