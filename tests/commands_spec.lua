@@ -37,7 +37,7 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 			vim.system = function(cmd, opts)
-				assert.same("make install", cmd)
+				assert.same({ "make install" }, cmd)
 				assert.same({ cwd = "/tmp/data/packages/test" }, opts)
 				return {
 					wait = function()
@@ -146,7 +146,7 @@ describe("commands", function()
 				msgs[#msgs + 1] = { msg, level }
 			end
 			vim.system = function(cmd, opts)
-				assert.same("make install", cmd)
+				assert.same({ "make install" }, cmd)
 				assert.same({ cwd = nil }, opts)
 				return {
 					wait = function()
