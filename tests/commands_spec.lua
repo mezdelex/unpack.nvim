@@ -3,9 +3,7 @@ local assert = require("luassert")
 local commands = require("lua.commands")
 
 _G.vim = require("tests.fixtures").vim_commands_fixtures
-_G.string.is_empty_or_whitespace = function(s)
-	return not not s:match("^%s*$")
-end
+dofile("lua/extensions.lua")
 
 package.loaded["config"] = {
 	opts = {
@@ -326,9 +324,6 @@ describe("commands", function()
 				if mod == ":t:r" then
 					return fpath:match("([^/]+)%.lua$")
 				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
-				end
 				return fpath
 			end
 			vim.notify = function(msg, level)
@@ -438,9 +433,6 @@ describe("commands", function()
 				if mod == ":t:r" then
 					return "parent"
 				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
-				end
 				return fpath
 			end
 			local scheduled_func
@@ -548,9 +540,6 @@ describe("commands", function()
 			vim.fn.fnamemodify = function(fpath, mod)
 				if mod == ":t:r" then
 					return fpath:match("([^/]+)%.lua$")
-				end
-				if mod == ":t" then
-					return fpath:match("([^/]+)$")
 				end
 				return fpath
 			end

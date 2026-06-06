@@ -1,20 +1,7 @@
 local M = {}
 
 M.vim_commands_fixtures = {
-	fn = {
-		fnamemodify = function(fpath, modifier)
-			if modifier == ":t" then
-				return fpath:match("([^/]+)$")
-			end
-			if modifier == ":t:r" then
-				return fpath:match("([^/]+)%.lua$")
-			end
-			return fpath
-		end,
-		glob = function()
-			return {}
-		end,
-	},
+	fn = {},
 	log = { levels = { INFO = 1, WARN = 2, ERROR = 3 } },
 	notify = function() end,
 	pack = {
