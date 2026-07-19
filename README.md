@@ -125,7 +125,6 @@ Whatever makes more sense to you.
 
 > [!NOTE]
 >
-> All the notifications are wrapped in a `vim.schedule` call to avoid command line overflow.
 > If you want to see the recap after executing any command, use `:messages`.
 
 The commands provided are:

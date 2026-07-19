@@ -16,16 +16,10 @@ package.loaded["config"] = {
 }
 
 describe("commands", function()
-	local original_vim_schedule = vim.schedule
-
-	before_each(function()
-		vim.schedule = function(func)
-			func()
-		end
-	end)
+	local default_vim_schedule = vim.schedule
 
 	after_each(function()
-		vim.schedule = original_vim_schedule
+		vim.schedule = default_vim_schedule
 	end)
 
 	describe("build", function()

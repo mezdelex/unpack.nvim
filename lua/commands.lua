@@ -11,9 +11,7 @@ local function get_specs(config)
 	---@return boolean
 	local function validate_spec(_spec, _plugin_name)
 		if type(_spec.src) ~= "string" then
-			vim.schedule(function()
-				vim.notify(("Invalid spec for %s, missing src"):format(_plugin_name), vim.log.levels.ERROR)
-			end)
+			vim.notify(("Invalid spec for %s, missing src"):format(_plugin_name), vim.log.levels.ERROR)
 			return false
 		end
 		return true
@@ -34,13 +32,9 @@ local function get_specs(config)
 		local success, spec = pcall(require, "plugins." .. plugin_name) ---@type boolean, Unpack.Spec
 
 		if not success then
-			vim.schedule(function()
-				vim.notify(("Failed to load plugin spec for %s"):format(plugin_name), vim.log.levels.ERROR)
-			end)
+			vim.notify(("Failed to load plugin spec for %s"):format(plugin_name), vim.log.levels.ERROR)
 		elseif type(spec) ~= "table" then
-			vim.schedule(function()
-				vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
-			end)
+			vim.notify(("Invalid spec for %s, not a table"):format(plugin_name), vim.log.levels.ERROR)
 		else
 			if type(spec.dependencies) == "table" then
 				for _, dep in ipairs(spec.dependencies) do
@@ -84,14 +78,12 @@ M.build = function(data)
 		return
 	end
 
-	vim.schedule(function()
-		vim.notify(("Building %s..."):format(data.spec.name), vim.log.levels.WARN)
-		local response = vim.system({ data.spec.data.build }, { cwd = data.path }):wait()
-		vim.notify(
-			("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", data.spec.name),
-			response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
-		)
-	end)
+	vim.notify(("Building %s..."):format(data.spec.name), vim.log.levels.WARN)
+	local response = vim.system({ data.spec.data.build }, { cwd = data.path }):wait()
+	vim.notify(
+		("Build %s for %s"):format(response.code ~= 0 and "failed" or "successful", data.spec.name),
+		response.code ~= 0 and vim.log.levels.ERROR or vim.log.levels.INFO
+	)
 end
 M.clean = function()
 	local config = require("config")
