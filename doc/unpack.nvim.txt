@@ -1,5 +1,5 @@
 *unpack.nvim.txt*
-                                 For NVIM v0.12.*    Last change: 2026 June 19
+                                 For NVIM v0.12.*    Last change: 2026 July 19
 
 ==============================================================================
 Table of Contents                              *unpack.nvim-table-of-contents*
@@ -151,9 +151,7 @@ COMMANDS                                                *unpack.nvim-commands*
 
 
   [!NOTE]
-  All the notifications are wrapped in a `vim.schedule` call to avoid command
-  line overflow. If you want to see the recap after executing any command, use
-  `:messages`.
+  If you want to see the recap after executing any command, use `:messages`.
 The commands provided are:
 
   -----------------------------------------------------------------------------
